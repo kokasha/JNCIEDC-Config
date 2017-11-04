@@ -1,0 +1,168 @@
+## Last changed: 2017-06-14 15:51:45 UTC
+version 15.1X53-D60.4;
+groups {
+    drain {
+        protocols {
+            bgp {
+                group <*> {
+                    export drain;
+                }
+            }
+        }
+    }
+}
+system {
+    host-name vQFX5;
+    root-authentication {
+        encrypted-password "$1$vZ1mPrBz$5H7htwNj4H8UiWfqgGNR6."; ## SECRET-DATA
+        ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+    extensions {
+        providers {
+            juniper {
+                license-type juniper deployment-scope commercial;
+            }
+            chef {
+                license-type juniper deployment-scope commercial;
+            }
+        }
+    }
+}
+interfaces {
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 2 {
+            vlan-id 2;
+            family inet {
+                address 192.168.2.1/31;
+            }
+        }
+        unit 4 {
+            vlan-id 4;
+            family inet {
+                address 192.168.4.1/31;
+            }
+        }
+        unit 6 {
+            vlan-id 6;
+            family inet {
+                address 192.168.6.1/31;
+            }
+        }
+        unit 9 {
+            vlan-id 9;
+            family inet {
+                address 192.168.9.1/31;
+            }
+        }
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 192.168.10.1/31;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.12/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.5/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    autonomous-system 65500;
+}
+protocols {
+    bgp {
+        group pod-spine-leaf {
+            hold-time 9;
+            advertise-peer-as;
+            authentication-key "$9$.PT3REyMWxSrGik.zFcylMX-"; ## SECRET-DATA
+            export advertise-lo0;
+            peer-as 65000;
+            neighbor 192.168.2.0;
+            neighbor 192.168.4.0;
+            neighbor 192.168.6.0;
+        }
+        group pod-spine-core {
+            hold-time 9;
+            authentication-key "$9$By9IhrVb2ZGiYg9p0BSys24Zjq"; ## SECRET-DATA
+            export advertise-lo0;
+            peer-as 65534;
+            neighbor 192.168.9.0;
+            neighbor 192.168.10.0;
+        }
+    }
+}
+policy-options {
+    policy-statement advertise-lo0 {
+        term lo0 {
+            from {
+                protocol direct;
+                route-filter 172.16.1.0/24 prefix-length-range /32-/32;
+            }
+            then accept;
+        }
+    }
+    policy-statement drain {
+        term 1 {
+            then as-path-prepend "65500 65500";
+        }
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

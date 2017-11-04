@@ -1,0 +1,217 @@
+## Last changed: 2017-06-14 15:22:33 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX3;
+    root-authentication {
+        encrypted-password "$1$HtEX2JKm$mO0mwLxbEmGEzRtK6155u/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members 100-101;
+                }
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.2.2/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members 100-101;
+                }
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.3.2/30;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.10/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.3/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    router-id 192.168.1.3;
+    autonomous-system 65003;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        log-updown;
+        group underlay {
+            authentication-key "$9$JvGjqCA0EhruOwgoJHkp0BEyK"; ## SECRET-DATA
+            export export-loopback;
+            bfd-liveness-detection {
+                minimum-interval 2000;
+                multiplier 5;
+            }
+            multipath multiple-as;
+            neighbor 172.16.2.1 {
+                peer-as 65001;
+            }
+            neighbor 172.16.3.1 {
+                peer-as 65002;
+            }
+        }
+        group overlay {
+            type internal;
+            local-address 192.168.1.3;
+            family evpn {
+                signaling;
+            }
+            authentication-key "$9$O--O1EydVYJZjs2qm5zAt1RhyvLaJD"; ## SECRET-DATA
+            local-as 65500;
+            bfd-liveness-detection {
+                minimum-interval 2000;
+                multiplier 3;
+            }
+            multipath;
+            neighbor 192.168.1.1;
+            neighbor 192.168.1.2;
+            neighbor 192.168.1.4;
+            neighbor 192.168.1.5;
+        }
+    }
+    evpn {
+        encapsulation vxlan;
+        extended-vni-list [ 100 101 ];
+        multicast-mode ingress-replication;
+        vni-options {
+            vni 100 {
+                vrf-target export target:100:100;
+            }
+            vni 101 {
+                vrf-target export target:101:101;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement export-loopback {
+        term lo0 {
+            from interface lo0.0;
+            then accept;
+        }
+    }
+    policy-statement fabric-import {
+        term fabric {
+            from {
+                protocol bgp;
+                community fabric;
+            }
+            then accept;
+        }
+        term vni-100 {
+            from community vni-100;
+            then accept;
+        }
+        term vni-101 {
+            from community vni-101;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    community fabric members target:1:1;
+    community vni-100 members target:100:100;
+    community vni-101 members target:101:101;
+}
+switch-options {
+    vtep-source-interface lo0.0;
+    route-distinguisher 192.168.1.3:1;
+    vrf-import fabric-import;
+    vrf-target target:1:1;
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+    vxlan-100 {
+        vlan-id 100;
+        vxlan {
+            vni 100;
+        }
+    }
+    vxlan-101 {
+        vlan-id 101;
+        vxlan {
+            vni 101;
+        }
+    }
+}

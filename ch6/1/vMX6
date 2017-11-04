@@ -1,0 +1,120 @@
+## Last changed: 2017-06-14 18:49:25 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX6;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 30;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/3 {
+        unit 0 {
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 100;
+            }
+        }
+    }
+    xe-0/0/5 {
+        unit 0 {
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 100;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.6/24;
+            }
+        }
+    }
+    irb {
+        unit 100 {
+            family inet {
+                address 172.16.100.3/29;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement advertise-static {
+        term 1 {
+            from protocol static;
+            then accept;
+        }
+    }
+}
+routing-instances {
+    customer-100 {
+        instance-type virtual-router;
+        interface irb.100;
+        routing-options {
+            static {
+                route 172.16.100.0/24 receive;
+            }
+            autonomous-system 65500;
+        }
+        protocols {
+            bgp {
+                group ebgp {
+                    export advertise-static;
+                    peer-as 65000;
+                    neighbor 172.16.100.1;
+                    neighbor 172.16.100.2;
+                }
+            }
+        }
+    }
+}
+bridge-domains {
+    bd-100 {
+        vlan-id 100;
+        routing-interface irb.100;
+    }
+}

@@ -1,0 +1,140 @@
+## Last changed: 2017-06-14 18:28:58 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$90SJdXUY$9xgD2dhZ.XZLQKJUoaFD2G3XW7OtyJt9uyadSkAxa.0"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+    network-services enhanced-ip;
+}
+interfaces {
+    xe-0/0/0 {
+        unit 0 {
+            family inet {
+                address 172.16.0.10/30;
+            }
+            family mpls;
+        }
+    }
+    xe-0/0/5 {
+        vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 2 {
+            vlan-id 2;
+            family inet {
+                address 172.16.0.25/30;
+            }
+            family mpls;
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.4/32;
+            }
+        }
+    }
+}
+routing-options {
+    router-id 172.16.1.4;
+    route-distinguisher-id 172.16.1.4;
+    autonomous-system 65000;
+}
+protocols {
+    mpls {
+        traffic-engineering {
+            mpls-forwarding;
+        }
+        no-propagate-ttl;
+        icmp-tunneling;
+        interface xe-0/0/0.0;
+        interface xe-0/0/5.2;
+    }
+    bgp {
+        group ibgp {
+            type internal;
+            local-address 172.16.1.4;
+            family inet-vpn {
+                unicast;
+            }
+            family evpn {
+                signaling;
+            }
+            authentication-key "$9$BxIIhrVb2ZGiYg9p0BSys24Zjq"; ## SECRET-DATA
+            neighbor 172.16.1.3;
+            neighbor 172.16.1.2;
+            neighbor 172.16.1.1;
+        }
+    }
+    ospf {
+        reference-bandwidth 100g;
+        area 0.0.0.0 {
+            interface lo0.0 {
+                passive;
+            }
+            interface xe-0/0/0.0 {
+                interface-type p2p;
+                ldp-synchronization;
+                authentication {
+                    md5 1 key "$9$-kVs4Pfz9CuQFMX7-2gTz39pB"; ## SECRET-DATA
+                }
+            }
+            interface xe-0/0/5.2 {
+                interface-type p2p;
+                ldp-synchronization;
+                authentication {
+                    md5 1 key "$9$43aGi6/t1IcApds24DjCtu1hr"; ## SECRET-DATA
+                }
+            }
+        }
+    }
+    ldp {
+        track-igp-metric;
+        deaggregate;
+        explicit-null;
+        interface xe-0/0/0.0;
+        interface xe-0/0/5.2;
+        session-group 172.16.1.0/24 {
+            authentication-key "$9$Y7gaUF390OR/C7VwYZG69A0Ic"; ## SECRET-DATA
+        }
+    }
+}

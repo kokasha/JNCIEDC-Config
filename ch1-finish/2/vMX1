@@ -1,0 +1,254 @@
+## Last changed: 2017-06-14 12:02:48 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX1;
+    root-authentication {
+        encrypted-password "$5$ORK1dKqD$KzyjDxPCroKPt35f1B5xYt0Xq1Ey65mWTQp7KVP4kQ/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 2;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/1 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/2 {
+        gigether-options {
+            802.3ad ae1;
+        }
+    }
+    xe-0/0/3 {
+        gigether-options {
+            802.3ad ae1;
+        }
+    }
+    xe-0/0/6 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 46 {
+            vlan-id 46;
+            family inet {
+                address 192.168.46.1/30;
+            }
+            family inet6;
+        }
+    }
+    ae0 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list [ 45 100 ];
+            }
+        }
+    }
+    ae1 {
+        aggregated-ether-options {
+            minimum-links 2;
+            lacp {
+                active;
+                system-id 01:02:01:02:00:01;
+                admin-key 1;
+            }
+            mc-ae {
+                mc-ae-id 1;
+                redundancy-group 1;
+                chassis-id 0;
+                mode active-active;
+                status-control active;
+            }
+        }
+        unit 0 {
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 100;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.1/24;
+            }
+        }
+    }
+    irb {
+        unit 45 {
+            family inet {
+                address 192.168.45.0/31;
+            }
+            family inet6;
+        }
+        unit 100 {
+            family inet {
+                policer {
+                    input 1g;
+                    output 1g;
+                }
+                address 192.168.1.254/24;
+            }
+            family inet6 {
+                policer {
+                    input 1g;
+                    output 1g;
+                }
+                address 2001:100:0:100::252/64 {
+                    vrrp-inet6-group 100 {
+                        virtual-inet6-address 2001:100:0:100::254;
+                        virtual-link-local-address fe80::0000:0:100:1;
+                        priority 200;
+                        accept-data;
+                    }
+                }
+            }
+            mac 00:00:00:00:11:22;
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 10.0.0.1/32;
+            }
+            family inet6 {
+                address 2001:100::1/128;
+            }
+        }
+    }
+}
+multi-chassis {
+    multi-chassis-protection 192.168.45.1 {
+        interface ae0;
+    }
+}
+snmp {
+    community inetzero;
+    trap-group space {
+        targets {
+            10.10.20.101;
+        }
+    }
+}
+routing-options {
+    router-id 10.0.0.1;
+}
+protocols {
+    ospf {
+        area 0.0.0.0 {
+            interface lo0.0 {
+                passive;
+            }
+            interface xe-0/0/6.46 {
+                interface-type p2p;
+            }
+            interface irb.45 {
+                interface-type p2p;
+            }
+            interface irb.100 {
+                passive;
+            }
+        }
+    }
+    ospf3 {
+        area 0.0.0.0 {
+            interface lo0.0 {
+                passive;
+            }
+            interface xe-0/0/6.46 {
+                interface-type p2p;
+            }
+            interface irb.45 {
+                interface-type p2p;
+            }
+            interface irb.100 {
+                passive;
+            }
+        }
+    }
+    iccp {
+        local-ip-addr 192.168.45.0;
+        peer 192.168.45.1 {
+            redundancy-group-id-list 1;
+            liveness-detection {
+                minimum-interval 3000;
+            }
+            authentication-key "$9$8GfXNbiHmzF/.PyKM8dVqmfz6A"; ## SECRET-DATA
+        }
+    }
+}
+firewall {
+    policer 1g {
+        logical-interface-policer;
+        if-exceeding {
+            bandwidth-limit 1g;
+            burst-size-limit 50m;
+        }
+        then discard;
+    }
+}
+bridge-domains {
+    bd-100 {
+        vlan-id 100;
+        routing-interface irb.100;
+    }
+    bd-45 {
+        vlan-id 45;
+        routing-interface irb.45;
+    }
+}
+switch-options {
+    service-id 1;
+}

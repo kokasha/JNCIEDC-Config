@@ -1,0 +1,499 @@
+## Last changed: 2017-06-25 14:32:39 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX5-DCI;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+logical-systems {
+    PE1 {
+        interfaces {
+            lt-0/0/0 {
+                unit 12;
+                unit 13;
+            }
+            xe-0/0/1 {
+                unit 0;
+            }
+            xe-0/0/2 {
+                unit 0;
+            }
+            lo0 {
+                unit 1;
+            }
+        }
+        protocols {
+            bgp {
+                group l3vpn {
+                    type internal;
+                    local-address 172.17.1.1;
+                    family inet-vpn {
+                        unicast;
+                    }
+                    local-as 64513;
+                    neighbor 172.17.1.2;
+                    neighbor 172.17.1.3;
+                }
+            }
+            ospf {
+                area 0.0.0.0 {
+                    interface all {
+                        hello-interval 1;
+                        dead-interval 4;
+                    }
+                }
+            }
+            ldp {
+                interface all;
+            }
+        }
+        policy-options {
+            policy-statement 2ospf {
+                from protocol bgp;
+                then accept;
+            }
+            policy-statement lbpp {
+                then {
+                    load-balance per-packet;
+                    accept;
+                }
+            }
+        }
+        routing-instances {
+            underlay {
+                instance-type vrf;
+                interface xe-0/0/1.0;
+                interface xe-0/0/2.0;
+                route-distinguisher 1:1;
+                vrf-target target:64513:1;
+                vrf-table-label;
+                protocols {
+                    ospf {
+                        export 2ospf;
+                        area 0.0.0.0 {
+                            interface xe-0/0/2.0 {
+                                metric 1000;
+                            }
+                            interface xe-0/0/1.0;
+                        }
+                    }
+                }
+            }
+        }
+        routing-options {
+            forwarding-table {
+                export lbpp;
+            }
+        }
+    }
+    PE2 {
+        interfaces {
+            lt-0/0/0 {
+                unit 21;
+                unit 23;
+            }
+            xe-0/0/3 {
+                unit 1000;
+                unit 2000;
+            }
+            xe-0/0/4 {
+                unit 1000;
+                unit 2000;
+            }
+            lo0 {
+                unit 2;
+            }
+        }
+        protocols {
+            bgp {
+                group l3vpn {
+                    type internal;
+                    local-address 172.17.1.2;
+                    family inet-vpn {
+                        unicast;
+                    }
+                    local-as 64513;
+                    neighbor 172.17.1.1;
+                    neighbor 172.17.1.3;
+                }
+            }
+            ospf {
+                area 0.0.0.0 {
+                    interface all {
+                        hello-interval 1;
+                        dead-interval 4;
+                    }
+                }
+            }
+            ldp {
+                interface all;
+            }
+        }
+        policy-options {
+            policy-statement lbpp {
+                then {
+                    load-balance per-packet;
+                    accept;
+                }
+            }
+        }
+        routing-instances {
+            dc-vpns {
+                instance-type vrf;
+                interface xe-0/0/3.2000;
+                interface xe-0/0/4.2000;
+                route-distinguisher 2:2;
+                vrf-target target:64513:2;
+                vrf-table-label;
+                protocols {
+                    bgp {
+                        group dc-vpns {
+                            type external;
+                            local-as 64513;
+                            neighbor 10.30.3.6 {
+                                peer-as 64523;
+                            }
+                            neighbor 10.30.4.6 {
+                                peer-as 64524;
+                            }
+                        }
+                    }
+                }
+            }
+            underlay {
+                instance-type vrf;
+                interface xe-0/0/3.1000;
+                interface xe-0/0/4.1000;
+                route-distinguisher 1:2;
+                vrf-target target:64513:1;
+                vrf-table-label;
+                protocols {
+                    bgp {
+                        group underlay {
+                            type external;
+                            local-as 64513;
+                            neighbor 10.30.3.2 {
+                                peer-as 64523;
+                            }
+                            neighbor 10.30.4.2 {
+                                peer-as 64524;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        routing-options {
+            forwarding-table {
+                export lbpp;
+            }
+        }
+    }
+    PE3 {
+        interfaces {
+            lt-0/0/0 {
+                unit 31;
+                unit 32;
+            }
+            xe-0/0/7 {
+                unit 1000;
+                unit 2000;
+            }
+            lo0 {
+                unit 3;
+            }
+        }
+        protocols {
+            bgp {
+                group l3vpn {
+                    type internal;
+                    local-address 172.17.1.3;
+                    family inet-vpn {
+                        unicast;
+                    }
+                    local-as 64513;
+                    neighbor 172.17.1.1;
+                    neighbor 172.17.1.2;
+                }
+            }
+            ospf {
+                area 0.0.0.0 {
+                    interface all {
+                        hello-interval 1;
+                        dead-interval 4;
+                    }
+                }
+            }
+            ldp {
+                interface all;
+            }
+        }
+        policy-options {
+            policy-statement 2ospf {
+                from protocol bgp;
+                then accept;
+            }
+        }
+        routing-instances {
+            dc-vpns {
+                instance-type vrf;
+                interface xe-0/0/7.2000;
+                route-distinguisher 1:4;
+                vrf-target target:64513:2;
+                vrf-table-label;
+                protocols {
+                    bgp {
+                        traceoptions {
+                            file bgp;
+                            flag all;
+                        }
+                        group external {
+                            type external;
+                            neighbor 10.40.2.2 {
+                                peer-as 64516;
+                            }
+                        }
+                    }
+                }
+            }
+            underlay {
+                instance-type vrf;
+                interface xe-0/0/7.1000;
+                route-distinguisher 1:3;
+                vrf-target target:64513:1;
+                vrf-table-label;
+                protocols {
+                    ospf {
+                        export 2ospf;
+                        area 0.0.0.0 {
+                            interface xe-0/0/7.1000;
+                        }
+                    }
+                }
+            }
+        }
+        routing-options {
+            autonomous-system 64513;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            tunnel-services;
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    lt-0/0/0 {
+        unit 12 {
+            encapsulation ethernet;
+            peer-unit 21;
+            family inet {
+                address 172.16.12.1/24;
+            }
+            family mpls;
+        }
+        unit 13 {
+            encapsulation ethernet;
+            peer-unit 31;
+            family inet {
+                address 172.16.13.1/24;
+            }
+            family mpls;
+        }
+        unit 21 {
+            encapsulation ethernet;
+            peer-unit 12;
+            family inet {
+                address 172.16.12.2/24;
+            }
+            family mpls;
+        }
+        unit 23 {
+            encapsulation ethernet;
+            peer-unit 32;
+            family inet {
+                address 172.16.23.2/24;
+            }
+            family mpls;
+        }
+        unit 31 {
+            encapsulation ethernet;
+            peer-unit 13;
+            family inet {
+                address 172.16.13.3/24;
+            }
+            family mpls;
+        }
+        unit 32 {
+            encapsulation ethernet;
+            peer-unit 23;
+            family inet {
+                address 172.16.23.3/24;
+            }
+            family mpls;
+        }
+    }
+    xe-0/0/1 {
+        unit 0 {
+            family inet {
+                address 10.20.1.1/30;
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 10.20.2.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        vlan-tagging;
+        unit 1000 {
+            vlan-id 1000;
+            family inet {
+                address 10.30.3.1/30;
+            }
+        }
+        unit 2000 {
+            vlan-id 2000;
+            family inet {
+                address 10.30.3.5/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        vlan-tagging;
+        unit 1000 {
+            vlan-id 1000;
+            family inet {
+                address 10.30.4.1/30;
+            }
+        }
+        unit 2000 {
+            vlan-id 2000;
+            family inet {
+                address 10.30.4.5/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        encapsulation ethernet-bridge;
+        unit 0 {
+            family bridge;
+        }
+    }
+    xe-0/0/6 {
+        encapsulation ethernet-bridge;
+        unit 0 {
+            family bridge;
+        }
+    }
+    xe-0/0/7 {
+        vlan-tagging;
+        unit 1000 {
+            description "underlay vrf";
+            vlan-id 1000;
+            family inet {
+                address 10.40.1.1/30;
+            }
+        }
+        unit 2000 {
+            description "dc-vpns vrf";
+            vlan-id 2000;
+            family inet {
+                address 10.40.2.1/30;
+            }
+        }
+        unit 3000 {
+            description "global routing table";
+            vlan-id 3000;
+            family inet {
+                address 1.1.1.1/29;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.5/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 8.8.8.8/32;
+            }
+        }
+        unit 1 {
+            family inet {
+                address 172.17.1.1/32;
+            }
+        }
+        unit 2 {
+            family inet {
+                address 172.17.1.2/32;
+            }
+        }
+        unit 3 {
+            family inet {
+                address 172.17.1.3/32;
+            }
+        }
+    }
+}
+protocols {
+    ospf {
+        area 0.0.0.0 {
+            interface xe-0/0/2.0 {
+                metric 1000;
+            }
+        }
+    }
+}
+bridge-domains {
+    vsrx-vqfx6 {
+        description do-not-delete;
+        domain-type bridge;
+        vlan-id 123;
+        interface xe-0/0/5.0;
+        interface xe-0/0/6.0;
+    }
+}

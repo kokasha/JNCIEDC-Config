@@ -1,0 +1,104 @@
+## Last changed: 2017-06-14 18:49:43 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX5;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 192.168.1.33/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 192.168.1.29/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.5/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.10.5/32;
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 reject;
+    }
+    router-id 192.168.10.5;
+}
+protocols {
+    ospf {
+        export static;
+        area 0.0.0.0 {
+            interface xe-0/0/3.0 {
+                interface-type p2p;
+            }
+            interface xe-0/0/4.0 {
+                interface-type p2p;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement static {
+        term 1 {
+            from protocol static;
+            then accept;
+        }
+    }
+}

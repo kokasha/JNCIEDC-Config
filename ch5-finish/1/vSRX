@@ -1,0 +1,547 @@
+## Last changed: 2017-06-14 19:07:43 UTC
+version 12.1X47-D20.7;
+system {
+    host-name vSRX;
+    root-authentication {
+        encrypted-password "$1$qC6UB5RS$n.5CL8Wp7IPp3ur5xrR/L1"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$1$ZWoFbJTI$XL0oPIMXfUpBLmTZav5H50"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+        web-management {
+            http {
+                interface ge-0/0/0.0;
+            }
+        }
+    }
+    syslog {
+        file messages {
+            any any;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file traffic-log {
+            any any;
+            match RT_FLOW_SESSION;
+        }
+    }
+    license {
+        autoupdate {
+            url https://ae1.juniper.net/junos/key_retrieval;
+        }
+    }
+}
+interfaces {
+    ge-0/0/0 {
+        vlan-tagging;
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 81.125.66.141/30;
+            }
+        }
+    }
+    ge-0/0/1 {
+        vlan-tagging;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                filter {
+                    input bypass-flowd;
+                }
+                address 172.16.56.25/30;
+            }
+        }
+    }
+    ge-0/0/2 {
+        vlan-tagging;
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 81.125.65.1/28;
+            }
+        }
+    }
+    ge-0/0/3 {
+        unit 0 {
+            family inet {
+                address 10.10.20.7/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                filter {
+                    input protect.re;
+                }
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop 81.125.66.142;
+    }
+    autonomous-system 65000;
+}
+protocols {
+    bgp {
+        group private-wan {
+            export static;
+            peer-as 65010;
+            neighbor 172.16.56.26;
+        }
+    }
+}
+policy-options {
+    prefix-list management {
+        10.10.20.0/24;
+        192.168.123.0/24;
+    }
+    policy-statement static {
+        term 1 {
+            from protocol static;
+            then accept;
+        }
+    }
+}
+security {
+    address-book {
+        global {
+            address remote-mgmt 192.168.123.0/24;
+            address private-wan-120 192.168.120.0/24;
+            address private-wan-121 192.168.121.0/24;
+            address private-wan-122 192.168.122.0/24;
+            address private-wan-123 192.168.123.0/24;
+            address private-wan-124 192.168.124.0/24;
+            address web-server 81.125.65.3/32;
+            address 192.168.124/24 192.168.124.0/24;
+            address ws-private-wan 192.168.123.123/32;
+            address ws-dc-zone 81.125.65.2/32;
+            address-set private-wan {
+                address private-wan-120;
+                address private-wan-121;
+                address private-wan-122;
+                address private-wan-123;
+                address private-wan-124;
+            }
+        }
+    }
+    forwarding-options {
+        family {
+            inet6 {
+                mode flow-based;
+            }
+        }
+    }
+    screen {
+        ids-option from-untrust {
+            icmp {
+                ip-sweep threshold 500000;
+                flood threshold 500;
+            }
+            limit-session {
+                source-ip-based 500;
+                destination-ip-based 500;
+            }
+        }
+    }
+    nat {
+        source {
+            rule-set source-nat-interface {
+                from zone private-wan;
+                to zone untrust;
+                rule src-nat-all {
+                    match {
+                        source-address 192.168.124.0/24;
+                    }
+                    then {
+                        source-nat {
+                            interface;
+                        }
+                    }
+                }
+            }
+        }
+        destination {
+            pool dst-nat {
+                address 81.125.65.2/32;
+            }
+            rule-set inbound-nat {
+                from zone untrust;
+                rule dst-nat {
+                    match {
+                        destination-address 81.122.31.2/32;
+                    }
+                    then {
+                        destination-nat {
+                            pool {
+                                dst-nat;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        static {
+            rule-set static-nat {
+                from zone untrust;
+                rule static-nat {
+                    match {
+                        destination-address 81.125.65.6/32;
+                    }
+                    then {
+                        static-nat {
+                            prefix {
+                                192.168.123.123/32;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    policies {
+        from-zone dc-zone to-zone private-wan {
+            policy 1 {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+        from-zone dc-zone to-zone untrust {
+            policy 1 {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application [ junos-http junos-https junos-dns-tcp junos-dns-udp ];
+                }
+                then {
+                    permit;
+                }
+            }
+            policy 2 {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    deny;
+                    log {
+                        session-init;
+                    }
+                }
+            }
+        }
+        from-zone private-wan to-zone dc-zone {
+            policy 1 {
+                match {
+                    source-address remote-mgmt;
+                    destination-address any;
+                    application [ junos-ssh junos-http junos-https junos-icmp-all junos-dns-udp junos-dns-tcp tcp_3389 ];
+                }
+                then {
+                    permit;
+                }
+            }
+            policy 2 {
+                match {
+                    source-address private-wan;
+                    destination-address any;
+                    application [ junos-http junos-https junos-dns-udp junos-dns-tcp ];
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+        from-zone untrust to-zone dc-zone {
+            policy 1 {
+                match {
+                    source-address any;
+                    destination-address web-server;
+                    application [ junos-http junos-https ];
+                }
+                then {
+                    permit;
+                }
+            }
+            policy destination-nat {
+                match {
+                    source-address any;
+                    destination-address ws-dc-zone;
+                    application [ junos-https junos-icmp-all ];
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+        from-zone private-wan to-zone untrust {
+            policy source-nat {
+                match {
+                    source-address 192.168.124/24;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+            policy static-nat {
+                match {
+                    source-address ws-private-wan;
+                    destination-address any;
+                    application [ junos-https junos-icmp-all ];
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+        from-zone untrust to-zone private-wan {
+            policy static-nat {
+                match {
+                    source-address any;
+                    destination-address ws-private-wan;
+                    application [ junos-https junos-icmp-all ];
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        functional-zone management {
+            interfaces {
+                ge-0/0/3.0;
+            }
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                    ssh;
+                }
+            }
+        }
+        security-zone private-wan {
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                }
+            }
+            interfaces {
+                ge-0/0/1.10;
+            }
+        }
+        security-zone untrust {
+            screen from-untrust;
+            interfaces {
+                ge-0/0/0.20;
+            }
+        }
+        security-zone dc-zone {
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                }
+            }
+            interfaces {
+                ge-0/0/2.100;
+            }
+        }
+    }
+}
+firewall {
+    family inet {
+        filter protect.re {
+            term bgp {
+                from {
+                    protocol tcp;
+                    port bgp;
+                }
+                then accept;
+            }
+            term ssh {
+                from {
+                    source-prefix-list {
+                        management;
+                    }
+                    protocol tcp;
+                    port ssh;
+                }
+                then {
+                    policer 5mbit;
+                    accept;
+                }
+            }
+            term ftp {
+                from {
+                    source-prefix-list {
+                        management;
+                    }
+                    protocol tcp;
+                    port [ ftp ftp-data ];
+                }
+                then {
+                    policer 5mbit;
+                    accept;
+                }
+            }
+            term ntp {
+                from {
+                    source-prefix-list {
+                        management;
+                    }
+                    protocol udp;
+                    port ntp;
+                }
+                then accept;
+            }
+            term radius {
+                from {
+                    source-prefix-list {
+                        management;
+                    }
+                    protocol udp;
+                    source-port radius;
+                }
+                then accept;
+            }
+            term snmp {
+                from {
+                    source-prefix-list {
+                        management;
+                    }
+                    protocol udp;
+                    destination-port snmp;
+                }
+                then accept;
+            }
+            term dns {
+                from {
+                    source-prefix-list {
+                        management;
+                    }
+                    protocol [ tcp udp ];
+                    source-port domain;
+                }
+                then accept;
+            }
+            term traceroute {
+                from {
+                    protocol udp;
+                    destination-port 33434-33534;
+                }
+                then {
+                    policer 1mbit;
+                    accept;
+                }
+            }
+            term icmp {
+                from {
+                    protocol icmp;
+                }
+                then {
+                    policer 1mbit;
+                    accept;
+                }
+            }
+            term discard {
+                then {
+                    count protect.re;
+                    log;
+                    discard;
+                }
+            }
+        }
+        filter bypass-flowd {
+            term per-packet-icmp {
+                from {
+                    source-address {
+                        192.168.120.1/32;
+                    }
+                    destination-address {
+                        81.125.65.2/32;
+                    }
+                    protocol icmp;
+                }
+                then {
+                    packet-mode;
+                    accept;
+                }
+            }
+            term per-packet-tcp {
+                from {
+                    source-address {
+                        192.168.120.1/32;
+                    }
+                    destination-address {
+                        81.125.65.2/32;
+                    }
+                    protocol tcp;
+                    destination-port 4567;
+                }
+                then {
+                    policer 100m;
+                    packet-mode;
+                    accept;
+                }
+            }
+            term accept-rest {
+                then accept;
+            }
+        }
+    }
+    policer 1mbit {
+        if-exceeding {
+            bandwidth-limit 1m;
+            burst-size-limit 125k;
+        }
+        then discard;
+    }
+    policer 5mbit {
+        if-exceeding {
+            bandwidth-limit 1m;
+            burst-size-limit 125k;
+        }
+        then discard;
+    }
+    policer 100m {
+        if-exceeding {
+            bandwidth-limit 100m;
+            burst-size-limit 625k;
+        }
+        then discard;
+    }
+}
+applications {
+    application tcp_3389 {
+        protocol tcp;
+        destination-port 3389;
+    }
+}

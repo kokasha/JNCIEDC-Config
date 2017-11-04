@@ -1,0 +1,97 @@
+## Last changed: 2017-06-14 18:36:33 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX1;
+    root-authentication {
+        encrypted-password "$1$zVb0R20s$4xtWRVziWj120tVGoh541/"; ## SECRET-DATA
+        ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members [ 200 250 ];
+                }
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.48.41/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 172.16.48.53/30;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.8/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.31.49.1/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

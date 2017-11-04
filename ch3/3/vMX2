@@ -1,0 +1,112 @@
+## Last changed: 2017-06-14 15:47:32 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX2;
+    root-authentication {
+        encrypted-password "$5$ow/o91wk$yosYzwp.mL62n.onZj4Az3r3DGYNglJrR.31ay67bY9"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 1;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/1 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 8 {
+            vlan-id 8;
+            family inet {
+                address 192.168.8.0/31;
+            }
+        }
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 192.168.10.0/31;
+            }
+        }
+    }
+    ae0 {
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            family inet {
+                address 192.168.0.1/31;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.20/32;
+            }
+        }
+    }
+}
+snmp {
+    community inetzero;
+    trap-group space {
+        targets {
+            10.10.20.101;
+        }
+    }
+}

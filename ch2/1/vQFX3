@@ -1,0 +1,176 @@
+## Last commit: 2017-10-02 11:01:48 UTC by jncie
+version 15.1X53-D60.4;
+system {
+    host-name vQFX3;
+    root-authentication {
+        encrypted-password "$1$HtEX2JKm$mO0mwLxbEmGEzRtK6155u/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        vlan-tagging;
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 10.200.100.254/24;
+            }
+        }
+        unit 101 {
+            vlan-id 101;
+            family inet {
+                address 10.200.101.254/24;
+            }
+        }
+        unit 102 {
+            vlan-id 102;
+            family inet {
+                address 10.200.102.254/24;
+            }
+        }
+        unit 103 {
+            vlan-id 103;
+            family inet {
+                address 10.200.103.254/24;
+            }
+        }
+        unit 104 {
+            vlan-id 104;
+            family inet {
+                address 10.200.104.254/24;
+            }
+        }
+        unit 105 {
+            vlan-id 105;
+            family inet {
+                address 10.200.105.254/24;
+            }
+        }
+        unit 106 {
+            vlan-id 106;
+            family inet {
+                address 10.200.106.254/24;
+            }
+        }
+        unit 107 {
+            vlan-id 107;
+            family inet {
+                address 10.200.107.254/24;
+            }
+        }
+        unit 108 {
+            vlan-id 108;
+            family inet {
+                address 10.200.108.254/24;
+            }
+        }
+        unit 109 {
+            vlan-id 109;
+            family inet {
+                address 10.200.109.254/24;
+            }
+        }
+        unit 110 {
+            vlan-id 110;
+            family inet {
+                address 10.200.110.254/24;
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.2.2/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        vlan-tagging;
+        unit 111 {
+            vlan-id 111;
+            family inet {
+                address 172.16.200.5/30;
+            }
+        }
+        unit 112 {
+            vlan-id 112;
+            family inet {
+                address 172.16.200.1/30;
+            }
+        }
+        unit 113 {
+            vlan-id 113;
+            family inet {
+                address 172.16.200.21/22;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.3.2/30;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.10/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.3/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

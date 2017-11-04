@@ -1,0 +1,199 @@
+## Last changed: 2017-06-14 18:28:37 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX4;
+    root-authentication {
+        encrypted-password "$1$vZ1mPrBz$5H7htwNj4H8UiWfqgGNR6."; ## SECRET-DATA
+        ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 1;
+        }
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        ether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/4 {
+        ether-options {
+            802.3ad ae0;
+        }
+    }
+    ae0 {
+        description vmx3-vmx4-ae0;
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members [ 141-145 200 ];
+                }
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.11/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    irb {
+        unit 141 {
+            family inet {
+                address 192.168.2.1/24;
+            }
+        }
+        unit 142 {
+            family inet {
+                address 192.168.2.1/24;
+            }
+        }
+        unit 143 {
+            family inet {
+                address 192.168.2.1/24;
+            }
+        }
+        unit 144 {
+            family inet {
+                address 192.168.2.1/24;
+            }
+        }
+        unit 145 {
+            family inet {
+                address 192.168.2.1/24;
+            }
+        }
+        unit 200 {
+            family inet {
+                address 192.168.200.1/24;
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop 192.168.200.254;
+    }
+}
+routing-instances {
+    CE-VLAN141 {
+        instance-type virtual-router;
+        interface irb.141;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.2.254;
+            }
+        }
+    }
+    CE-VLAN142 {
+        instance-type virtual-router;
+        interface irb.142;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.2.254;
+            }
+        }
+    }
+    CE-VLAN143 {
+        instance-type virtual-router;
+        interface irb.143;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.2.254;
+            }
+        }
+    }
+    CE-VLAN144 {
+        instance-type virtual-router;
+        interface irb.144;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.2.254;
+            }
+        }
+    }
+    CE-VLAN145 {
+        instance-type virtual-router;
+        interface irb.145;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.2.254;
+            }
+        }
+    }
+}
+vlans {
+    vlan-141 {
+        vlan-id 141;
+        l3-interface irb.141;
+    }
+    vlan-142 {
+        vlan-id 142;
+        l3-interface irb.142;
+    }
+    vlan-143 {
+        vlan-id 143;
+        l3-interface irb.143;
+    }
+    vlan-144 {
+        vlan-id 144;
+        l3-interface irb.144;
+    }
+    vlan-145 {
+        vlan-id 145;
+        l3-interface irb.145;
+    }
+    vlan-200 {
+        vlan-id 200;
+        l3-interface irb.200;
+    }
+}

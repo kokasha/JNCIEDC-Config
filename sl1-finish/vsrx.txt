@@ -1,0 +1,266 @@
+## Last commit: 2017-06-24 14:59:58 UTC by jncie
+version 12.1X47-D20.7;
+system {
+    host-name vSRX;
+    root-authentication {
+        encrypted-password "$1$qC6UB5RS$n.5CL8Wp7IPp3ur5xrR/L1"; ## SECRET-DATA
+    }
+    login {
+        class inetzero {
+            login-tip;
+            permissions [ view view-configuration ];
+        }
+        user inetzero {
+            uid 2000;
+            class inetzero;
+            authentication {
+                encrypted-password "$1$PyW2ieTm$IOpmNvIJvxfiDPS7DPAc90"; ## SECRET-DATA
+            }
+        }
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$1$ZWoFbJTI$XL0oPIMXfUpBLmTZav5H50"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+        web-management {
+            http {
+                interface ge-0/0/0.0;
+            }
+        }
+    }
+    syslog {
+        file messages {
+            any any;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file traffic-log {
+            any any;
+            match RT_FLOW_SESSION;
+        }
+    }
+    license {
+        autoupdate {
+            url https://ae1.juniper.net/junos/key_retrieval;
+        }
+    }
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 10.40.3.1/30;
+            }
+        }
+    }
+    ge-0/0/1 {
+        vlan-tagging;
+        unit 1000 {
+            description underlay;
+            vlan-id 1000;
+            family inet {
+                address 10.40.1.2/30;
+            }
+        }
+        unit 2000 {
+            description dc-vpns;
+            vlan-id 2000;
+            family inet {
+                address 10.40.2.2/30;
+            }
+        }
+        unit 3000 {
+            description untrust;
+            vlan-id 3000;
+            family inet {
+                address 1.1.1.2/29;
+            }
+        }
+    }
+    ge-0/0/3 {
+        unit 0 {
+            family inet {
+                address 10.10.20.7/24;
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop 1.1.1.1;
+        route 192.168.1.6/32 next-hop [ 10.40.3.2 10.40.2.2 ];
+    }
+    router-id 10.40.2.2;
+    autonomous-system 64516;
+}
+protocols {
+    bgp {
+        group external {
+            type external;
+            export default-2-bgp;
+            neighbor 10.40.2.1 {
+                peer-as 64513;
+            }
+        }
+    }
+    ospf {
+        export 2ospf;
+        area 0.0.0.0 {
+            interface ge-0/0/1.1000;
+        }
+    }
+}
+policy-options {
+    policy-statement 2ospf {
+        term 1 {
+            from {
+                protocol static;
+                route-filter 192.168.1.6/32 exact;
+            }
+            then accept;
+        }
+    }
+    policy-statement default-2-bgp {
+        from {
+            protocol static;
+            route-filter 0.0.0.0/0 exact;
+        }
+        then accept;
+    }
+}
+security {
+    address-book {
+        global {
+            address 192.168.1/24 192.168.1.0/24;
+        }
+    }
+    nat {
+        source {
+            rule-set inetzero {
+                from zone dc-vpns;
+                to zone untrust;
+                rule iz-1 {
+                    match {
+                        source-address 0.0.0.0/0;
+                        destination-address 0.0.0.0/0;
+                        application any;
+                    }
+                    then {
+                        source-nat {
+                            interface;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    policies {
+        from-zone underlay to-zone underlay {
+            policy inetzero1 {
+                match {
+                    source-address 192.168.1/24;
+                    destination-address 192.168.1/24;
+                    application [ junos-bgp junos-icmp-ping vxlan ];
+                }
+                then {
+                    permit;
+                    log {
+                        session-init;
+                    }
+                }
+            }
+        }
+        from-zone dc-vpns to-zone untrust {
+            policy 1 {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+        from-zone untrust to-zone dc-vpns {
+            policy 1 {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+        policy-rematch;
+    }
+    zones {
+        functional-zone management {
+            interfaces {
+                ge-0/0/3.0;
+            }
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                    ssh;
+                    telnet;
+                }
+            }
+        }
+        security-zone underlay {
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                }
+                protocols {
+                    ospf;
+                }
+            }
+            interfaces {
+                ge-0/0/1.1000;
+                ge-0/0/0.0;
+            }
+        }
+        security-zone untrust {
+            interfaces {
+                ge-0/0/1.3000;
+            }
+        }
+        security-zone dc-vpns {
+            interfaces {
+                ge-0/0/1.2000 {
+                    host-inbound-traffic {
+                        system-services {
+                            ping;
+                        }
+                        protocols {
+                            bgp;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+applications {
+    application vxlan {
+        protocol udp;
+        destination-port 4789;
+    }
+}

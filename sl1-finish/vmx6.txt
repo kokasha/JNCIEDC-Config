@@ -1,0 +1,338 @@
+## Last changed: 2017-06-24 14:48:32 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX6;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 15;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 10.150.10.1/24;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 10.150.20.1/24;
+            }
+        }
+        unit 30 {
+            vlan-id 30;
+            family inet {
+                address 10.150.30.1/24;
+            }
+        }
+    }
+    xe-0/0/2 {
+        gigether-options {
+            802.3ad ae11;
+        }
+    }
+    xe-0/0/3 {
+        gigether-options {
+            802.3ad ae12;
+        }
+    }
+    xe-0/0/4 {
+        gigether-options {
+            802.3ad ae11;
+        }
+    }
+    xe-0/0/5 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 10.150.10.4/24;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 10.150.20.4/24;
+            }
+        }
+        unit 30 {
+            vlan-id 30;
+            family inet {
+                address 10.150.30.4/24;
+            }
+        }
+    }
+    xe-0/0/6 {
+        gigether-options {
+            802.3ad ae11;
+        }
+    }
+    xe-0/0/7 {
+        gigether-options {
+            802.3ad ae14;
+        }
+    }
+    ae11 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 10.150.10.2/24;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 10.150.20.2/24;
+            }
+        }
+        unit 30 {
+            vlan-id 30;
+            family inet {
+                address 10.150.30.2/24;
+            }
+        }
+    }
+    ae12 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 10.150.10.3/24;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 10.150.20.3/24;
+            }
+        }
+        unit 30 {
+            vlan-id 30;
+            family inet {
+                address 10.150.30.3/24;
+            }
+        }
+    }
+    ae14 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 10.150.10.5/24;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 10.150.20.5/24;
+            }
+        }
+        unit 30 {
+            vlan-id 30;
+            family inet {
+                address 10.150.30.5/24;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.6/24;
+            }
+        }
+    }
+}
+routing-instances {
+    S1-10 {
+        instance-type virtual-router;
+        interface xe-0/0/1.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.10.254;
+            }
+        }
+    }
+    S1-20 {
+        instance-type virtual-router;
+        interface xe-0/0/1.20;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.20.254;
+            }
+        }
+    }
+    S1-30 {
+        instance-type virtual-router;
+        interface xe-0/0/1.30;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.30.254;
+            }
+        }
+    }
+    S2-10 {
+        instance-type virtual-router;
+        interface ae12.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.10.254;
+            }
+        }
+    }
+    S2-20 {
+        instance-type virtual-router;
+        interface ae12.20;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.20.254;
+            }
+        }
+    }
+    S2-30 {
+        instance-type virtual-router;
+        interface ae12.30;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.30.254;
+            }
+        }
+    }
+    S3-10 {
+        instance-type virtual-router;
+        interface ae11.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.10.254;
+            }
+        }
+    }
+    S3-20 {
+        instance-type virtual-router;
+        interface ae11.20;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.20.254;
+            }
+        }
+    }
+    S3-30 {
+        instance-type virtual-router;
+        interface ae11.30;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.30.254;
+            }
+        }
+    }
+    S4-10 {
+        instance-type virtual-router;
+        interface xe-0/0/5.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.10.254;
+            }
+        }
+    }
+    S4-20 {
+        instance-type virtual-router;
+        interface xe-0/0/5.20;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.20.254;
+            }
+        }
+    }
+    S4-30 {
+        instance-type virtual-router;
+        interface xe-0/0/5.30;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.30.254;
+            }
+        }
+    }
+    S5-10 {
+        instance-type virtual-router;
+        interface ae14.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.10.254;
+            }
+        }
+    }
+    S5-20 {
+        instance-type virtual-router;
+        interface ae14.20;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.20.254;
+            }
+        }
+    }
+    S5-30 {
+        instance-type virtual-router;
+        interface ae14.30;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.150.30.254;
+            }
+        }
+    }
+}

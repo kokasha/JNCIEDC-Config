@@ -1,0 +1,105 @@
+## Last changed: 2017-06-14 17:27:40 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX1;
+    root-authentication {
+        encrypted-password "$5$ORK1dKqD$KzyjDxPCroKPt35f1B5xYt0Xq1Ey65mWTQp7KVP4kQ/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 3;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        unit 0 {
+            family inet {
+                address 172.16.0.1/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 2 {
+            vlan-id 2;
+            family inet {
+                address 172.16.0.13/30;
+            }
+        }
+        unit 10 {
+            description "vMX5 logical-system CE routing-instance CE1-BLUE";
+            vlan-id 10;
+            family inet {
+                address 10.0.10.1/30;
+            }
+        }
+        unit 20 {
+            description "vMX5 logical-system CE routing-instance CE1-GREEN";
+            vlan-id 20;
+            family inet {
+                address 10.0.20.1/30;
+            }
+        }
+        unit 30 {
+            description "vMX5 logical-system CE routing-instance CE1-RED";
+            vlan-id 30;
+            family inet {
+                address 10.0.30.1/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.1/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.1/32;
+            }
+        }
+    }
+}

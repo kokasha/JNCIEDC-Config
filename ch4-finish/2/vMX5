@@ -1,0 +1,751 @@
+## Last changed: 2017-06-14 18:25:32 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX5;
+    root-authentication {
+        encrypted-password "$5$PHrp6Bvu$hC9KxzffIkDTSYgFM3eCdZ6eFDZNi.7alVkrFfN3qI."; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+logical-systems {
+    CE {
+        interfaces {
+            xe-0/0/1 {
+                unit 10 {
+                    vlan-id 10;
+                    family inet {
+                        address 10.0.10.2/30;
+                    }
+                }
+                unit 20 {
+                    vlan-id 20;
+                    family inet {
+                        address 10.0.20.2/30;
+                    }
+                }
+                unit 30 {
+                    vlan-id 30;
+                    family inet {
+                        address 10.0.30.2/30;
+                    }
+                }
+                unit 100 {
+                    vlan-id 100;
+                    family inet {
+                        address 192.168.1.1/24;
+                    }
+                }
+                unit 110 {
+                    vlan-id 110;
+                    family inet {
+                        address 192.168.1.1/24;
+                    }
+                }
+                unit 120 {
+                    vlan-id 120;
+                    family inet {
+                        address 192.168.1.1/24;
+                    }
+                }
+                unit 130 {
+                    vlan-id 130;
+                    family inet {
+                        address 192.168.1.1/24;
+                    }
+                }
+            }
+            xe-0/0/2 {
+                unit 10 {
+                    vlan-id 10;
+                    family inet {
+                        address 10.0.10.6/30;
+                    }
+                }
+                unit 20 {
+                    vlan-id 20;
+                    family inet {
+                        address 10.0.20.6/30;
+                    }
+                }
+                unit 30 {
+                    vlan-id 30;
+                    family inet {
+                        address 10.0.30.6/30;
+                    }
+                }
+                unit 100 {
+                    vlan-id 100;
+                    family inet {
+                        address 192.168.1.2/24;
+                    }
+                }
+                unit 110 {
+                    vlan-id 110;
+                    family inet {
+                        address 192.168.1.2/24;
+                    }
+                }
+                unit 120 {
+                    vlan-id 120;
+                    family inet {
+                        address 192.168.1.2/24;
+                    }
+                }
+                unit 130 {
+                    vlan-id 130;
+                    family inet {
+                        address 192.168.1.2/24;
+                    }
+                }
+            }
+            xe-0/0/3 {
+                unit 10 {
+                    vlan-id 10;
+                    family inet {
+                        address 10.0.10.10/30;
+                    }
+                }
+                unit 20 {
+                    vlan-id 20;
+                    family inet {
+                        address 10.0.20.10/30;
+                    }
+                }
+                unit 30 {
+                    vlan-id 30;
+                    family inet {
+                        address 10.0.30.10/30;
+                    }
+                }
+                unit 110 {
+                    vlan-id 110;
+                    family inet {
+                        address 192.168.1.3/24;
+                    }
+                }
+                unit 120 {
+                    vlan-id 120;
+                    family inet {
+                        address 192.168.2.1/24;
+                    }
+                }
+                unit 131 {
+                    vlan-id 131;
+                    family inet {
+                        address 192.168.1.3/24;
+                    }
+                }
+            }
+            xe-0/0/4 {
+                unit 10 {
+                    vlan-id 10;
+                    family inet {
+                        address 10.0.10.14/30;
+                    }
+                }
+                unit 20 {
+                    vlan-id 20;
+                    family inet {
+                        address 10.0.20.14/30;
+                    }
+                }
+                unit 30 {
+                    vlan-id 30;
+                    family inet {
+                        address 10.0.30.14/30;
+                    }
+                }
+                unit 110 {
+                    vlan-id 110;
+                    family inet {
+                        address 192.168.1.4/24;
+                    }
+                }
+                unit 120 {
+                    vlan-id 120;
+                    family inet {
+                        address 192.168.3.1/24;
+                    }
+                }
+                unit 132 {
+                    vlan-id 132;
+                    family inet {
+                        address 192.168.2.1/24;
+                    }
+                }
+            }
+            lo0 {
+                unit 1 {
+                    family inet {
+                        address 192.168.1.1/24;
+                    }
+                }
+                unit 2 {
+                    family inet {
+                        address 192.168.2.1/24;
+                    }
+                }
+                unit 3 {
+                    family inet {
+                        address 192.168.21.1/24;
+                    }
+                }
+                unit 4 {
+                    family inet {
+                        address 192.168.22.1/24;
+                    }
+                }
+                unit 5 {
+                    family inet {
+                        address 192.168.31.1/24;
+                    }
+                }
+                unit 11 {
+                    family inet {
+                        address 192.168.3.1/24;
+                    }
+                }
+                unit 12 {
+                    family inet {
+                        address 192.168.4.1/24;
+                    }
+                }
+                unit 13 {
+                    family inet {
+                        address 192.168.23.1/24;
+                    }
+                }
+                unit 14 {
+                    family inet {
+                        address 192.168.24.1/24;
+                    }
+                }
+                unit 15 {
+                    family inet {
+                        address 192.168.32.1/24;
+                    }
+                }
+                unit 16 {
+                    family inet {
+                        address 192.168.33.1/24;
+                    }
+                }
+            }
+        }
+        policy-options {
+            policy-statement bgp-export-ce1 {
+                term 1 {
+                    from interface lo0.5;
+                    then accept;
+                }
+                term 2 {
+                    from protocol static;
+                    then accept;
+                }
+            }
+            policy-statement ce4-export {
+                term 1 {
+                    from {
+                        protocol direct;
+                        route-filter 0.0.0.0/0 prefix-length-range /24-/24;
+                    }
+                    then accept;
+                }
+            }
+        }
+        routing-instances {
+            CE1-BLUE {
+                instance-type virtual-router;
+                interface xe-0/0/1.10;
+                interface lo0.1;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 10.0.10.1;
+                    }
+                }
+            }
+            CE1-BLUE-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/1.110;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE1-GREEN {
+                instance-type virtual-router;
+                interface xe-0/0/1.20;
+                interface lo0.3;
+                protocols {
+                    ospf {
+                        area 0.0.0.0 {
+                            interface all;
+                        }
+                    }
+                }
+            }
+            CE1-GREEN-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/1.120;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE1-PURPLE-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/1.100;
+                protocols {
+                    ospf {
+                        area 0.0.0.0 {
+                            interface all {
+                                interface-type p2p;
+                            }
+                        }
+                    }
+                }
+            }
+            CE1-RED {
+                instance-type virtual-router;
+                interface xe-0/0/1.30;
+                interface xe-0/0/2.30;
+                interface lo0.5;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 reject;
+                    }
+                    autonomous-system 65500;
+                }
+                protocols {
+                    bgp {
+                        group ebgp {
+                            export bgp-export-ce1;
+                            peer-as 65000;
+                            neighbor 10.0.30.1;
+                            neighbor 10.0.30.5;
+                        }
+                    }
+                }
+            }
+            CE1-RED-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/1.130;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE2-BLUE {
+                instance-type virtual-router;
+                interface xe-0/0/2.10;
+                interface lo0.2;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 10.0.10.5;
+                    }
+                }
+            }
+            CE2-BLUE-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/2.110;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE2-GREEN {
+                instance-type virtual-router;
+                interface xe-0/0/2.20;
+                interface lo0.4;
+                protocols {
+                    ospf {
+                        area 0.0.0.0 {
+                            interface all;
+                        }
+                    }
+                }
+            }
+            CE2-GREEN-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/2.120;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE2-PURPLE-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/2.100;
+                protocols {
+                    ospf {
+                        area 0.0.0.0 {
+                            interface all {
+                                interface-type p2p;
+                            }
+                        }
+                    }
+                }
+            }
+            CE2-RED-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/2.130;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE3-BLUE {
+                instance-type virtual-router;
+                interface xe-0/0/3.10;
+                interface lo0.11;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 10.0.10.9;
+                    }
+                }
+            }
+            CE3-BLUE-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/3.110;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE3-GREEN {
+                instance-type virtual-router;
+                interface xe-0/0/3.20;
+                interface lo0.13;
+                protocols {
+                    ospf {
+                        area 0.0.0.0 {
+                            interface all;
+                        }
+                    }
+                }
+            }
+            CE3-GREEN-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/3.120;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.2.254;
+                    }
+                }
+            }
+            CE3-RED {
+                instance-type virtual-router;
+                interface xe-0/0/3.30;
+                interface lo0.15;
+                routing-options {
+                    autonomous-system 65500;
+                }
+                protocols {
+                    bgp {
+                        group ebgp {
+                            export ce4-export;
+                            peer-as 65000;
+                            neighbor 10.0.30.9;
+                        }
+                    }
+                }
+            }
+            CE3-RED-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/3.131;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE4-BLUE {
+                instance-type virtual-router;
+                interface xe-0/0/4.10;
+                interface lo0.12;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 10.0.10.13;
+                    }
+                }
+            }
+            CE4-BLUE-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/4.110;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.1.254;
+                    }
+                }
+            }
+            CE4-GREEN {
+                instance-type virtual-router;
+                interface xe-0/0/4.20;
+                interface lo0.14;
+                protocols {
+                    ospf {
+                        area 0.0.0.0 {
+                            interface all;
+                        }
+                    }
+                }
+            }
+            CE4-GREEN-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/4.120;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.3.254;
+                    }
+                }
+            }
+            CE4-RED {
+                instance-type virtual-router;
+                interface xe-0/0/4.30;
+                interface lo0.16;
+                routing-options {
+                    autonomous-system 65500;
+                }
+                protocols {
+                    bgp {
+                        group ebgp {
+                            export ce4-export;
+                            peer-as 65000;
+                            neighbor 10.0.30.13;
+                        }
+                    }
+                }
+            }
+            CE4-RED-EVPN {
+                instance-type virtual-router;
+                interface xe-0/0/4.132;
+                routing-options {
+                    static {
+                        route 0.0.0.0/0 next-hop 192.168.2.254;
+                    }
+                }
+            }
+        }
+    }
+    P1 {
+        interfaces {
+            lt-0/0/0 {
+                unit 2 {
+                    encapsulation vlan;
+                    vlan-id 2;
+                    peer-unit 12;
+                    family inet {
+                        address 172.16.0.5/30;
+                    }
+                    family mpls;
+                }
+            }
+            xe-0/0/1 {
+                unit 2 {
+                    vlan-id 2;
+                    family inet {
+                        address 172.16.0.14/30;
+                    }
+                    family mpls;
+                }
+            }
+            xe-0/0/3 {
+                unit 2 {
+                    vlan-id 2;
+                    family inet {
+                        address 172.16.0.17/30;
+                    }
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 0 {
+                    family inet {
+                        address 172.16.1.5/32;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface lt-0/0/0.2;
+                interface xe-0/0/1.2;
+                interface xe-0/0/3.2;
+            }
+            mpls {
+                interface xe-0/0/3.2;
+                interface xe-0/0/1.2;
+                interface lt-0/0/0.2;
+            }
+            ospf {
+                traffic-engineering;
+                reference-bandwidth 100g;
+                area 0.0.0.0 {
+                    interface lo0.0 {
+                        passive;
+                    }
+                    interface xe-0/0/1.2 {
+                        interface-type p2p;
+                        authentication {
+                            md5 1 key "$9$9G0aAu18LNsYo7-T369OBxNds4Z"; ## SECRET-DATA
+                        }
+                    }
+                    interface xe-0/0/3.2 {
+                        interface-type p2p;
+                        authentication {
+                            md5 1 key "$9$xXeNVYq.5n6AfTeWLxwsP5QnCu"; ## SECRET-DATA
+                        }
+                    }
+                    interface lt-0/0/0.2 {
+                        interface-type p2p;
+                        authentication {
+                            md5 1 key "$9$t/HMuBEx7Vg4ZdbF/CtIR-VwgJD"; ## SECRET-DATA
+                        }
+                    }
+                }
+            }
+        }
+    }
+    P2 {
+        interfaces {
+            lt-0/0/0 {
+                unit 12 {
+                    encapsulation vlan;
+                    vlan-id 2;
+                    peer-unit 2;
+                    family inet {
+                        address 172.16.0.6/30;
+                    }
+                    family mpls;
+                }
+            }
+            xe-0/0/2 {
+                unit 2 {
+                    vlan-id 2;
+                    family inet {
+                        address 172.16.0.22/30;
+                    }
+                    family mpls;
+                }
+            }
+            xe-0/0/4 {
+                unit 2 {
+                    vlan-id 2;
+                    family inet {
+                        address 172.16.0.26/30;
+                    }
+                    family mpls;
+                }
+            }
+            lo0 {
+                unit 100 {
+                    family inet {
+                        address 172.16.1.6/32;
+                    }
+                }
+            }
+        }
+        protocols {
+            rsvp {
+                interface lt-0/0/0.12;
+                interface xe-0/0/2.2;
+                interface xe-0/0/4.2;
+            }
+            mpls {
+                interface lt-0/0/0.12;
+                interface xe-0/0/2.2;
+                interface xe-0/0/4.2;
+            }
+            ospf {
+                traffic-engineering;
+                reference-bandwidth 100g;
+                area 0.0.0.0 {
+                    interface lo0.100 {
+                        passive;
+                    }
+                    interface xe-0/0/2.2 {
+                        interface-type p2p;
+                        authentication {
+                            md5 1 key "$9$0pgyBRS-dsaJDwY6Ap0hcbs2aUH"; ## SECRET-DATA
+                        }
+                    }
+                    interface xe-0/0/4.2 {
+                        interface-type p2p;
+                        authentication {
+                            md5 1 key "$9$FmS/n9peK8-dsWL.5QFAtM8X-wg"; ## SECRET-DATA
+                        }
+                    }
+                    interface lt-0/0/0.12 {
+                        interface-type p2p;
+                        authentication {
+                            md5 1 key "$9$5Q39SyKXxdevi.P56/lKMX-w"; ## SECRET-DATA
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            tunnel-services;
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+    }
+    xe-0/0/2 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+    }
+    xe-0/0/3 {
+        flexible-vlan-tagging;
+    }
+    xe-0/0/4 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.5/24;
+            }
+        }
+    }
+}

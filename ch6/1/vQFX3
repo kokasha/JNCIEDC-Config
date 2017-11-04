@@ -1,0 +1,196 @@
+## Last changed: 2017-06-14 19:02:44 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX3;
+    root-authentication {
+        encrypted-password "$1$HtEX2JKm$mO0mwLxbEmGEzRtK6155u/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        vlan-tagging;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 172.16.13.1/24;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 172.16.23.1/24;
+            }
+        }
+        unit 30 {
+            vlan-id 30;
+            family inet {
+                address 172.16.33.1/24;
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 192.168.1.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members 100;
+                }
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 192.168.1.5/30;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.10/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    irb {
+        unit 100 {
+            family inet {
+                address 172.16.100.1/29;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.0.3/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    router-id 192.168.0.3;
+    autonomous-system 65000;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group fabric {
+            type internal;
+            local-address 192.168.0.3;
+            family inet {
+                unicast {
+                    add-path {
+                        receive;
+                    }
+                }
+            }
+            export [ nhs direct ];
+            multipath;
+            neighbor 192.168.10.3;
+            neighbor 192.168.10.4;
+        }
+        group ebgp {
+            peer-as 65500;
+            neighbor 172.16.100.3;
+        }
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface xe-0/0/2.0 {
+                interface-type p2p;
+            }
+            interface xe-0/0/4.0 {
+                interface-type p2p;
+            }
+            interface lo0.0 {
+                passive;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement direct {
+        term 1 {
+            from {
+                protocol direct;
+                route-filter 172.16.0.0/16 prefix-length-range /24-/24;
+            }
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    policy-statement nhs {
+        term 1 {
+            then {
+                next-hop self;
+            }
+        }
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+    vlan-100 {
+        vlan-id 100;
+        l3-interface irb.100;
+    }
+}

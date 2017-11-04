@@ -1,0 +1,354 @@
+## Last changed: 2017-06-14 17:03:58 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX4;
+    root-authentication {
+        encrypted-password "$1$IeRqfCPP$JCq6EkwhCInxNU4sEcVqQ0"; ## SECRET-DATA
+        ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+        user vagrant {
+            uid 2000;
+            class super-user;
+            authentication {
+                ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+        rest {
+            http {
+                port 8080;
+            }
+            enable-explorer;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file bgp.log {
+            daemon any;
+            match bgp;
+            archive size 5m files 5 world-readable;
+        }
+    }
+    extensions {
+        providers {
+            juniper {
+                license-type juniper deployment-scope commercial;
+            }
+            chef {
+                license-type juniper deployment-scope commercial;
+            }
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 1;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members 100-110;
+                }
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.4.2/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        ether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.5.2/30;
+            }
+        }
+    }
+    ae0 {
+        esi {
+            00:11:11:11:11:11:11:11:11:11;
+            all-active;
+        }
+        aggregated-ether-options {
+            lacp {
+                system-id 00:11:11:11:11:11;
+                force-up;
+            }
+        }
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members 100-110;
+                }
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.11/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.4/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    router-id 192.168.1.4;
+    autonomous-system 65000;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group overlay {
+            type internal;
+            local-address 192.168.1.4;
+            family evpn {
+                signaling;
+            }
+            authentication-key "$9$cPryeWg4ZHkPJG0IEcvMaZUHmT"; ## SECRET-DATA
+            bfd-liveness-detection {
+                minimum-interval 3000;
+            }
+            neighbor 192.168.1.1;
+            neighbor 192.168.1.2;
+        }
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface lo0.0 {
+                passive;
+            }
+            interface xe-0/0/2.0 {
+                interface-type p2p;
+                authentication {
+                    md5 1 key "$9$edEv87ZGiPfzjHRSreXxDikPQn"; ## SECRET-DATA
+                }
+                bfd-liveness-detection {
+                    minimum-interval 3000;
+                }
+            }
+            interface xe-0/0/4.0 {
+                interface-type p2p;
+                authentication {
+                    md5 1 key "$9$lZ-KWxJZjmPQDiIcylLXUjHmT3"; ## SECRET-DATA
+                }
+                bfd-liveness-detection {
+                    minimum-interval 3000;
+                }
+            }
+        }
+    }
+    evpn {
+        encapsulation vxlan;
+        extended-vni-list [ 105 106 107 108 109 110 all ];
+        multicast-mode ingress-replication;
+        vni-options {
+            vni 105 {
+                vrf-target export target:65000:105;
+            }
+            vni 106 {
+                vrf-target export target:65000:106;
+            }
+            vni 107 {
+                vrf-target export target:65000:107;
+            }
+            vni 108 {
+                vrf-target export target:65000:108;
+            }
+            vni 109 {
+                vrf-target export target:65000:109;
+            }
+            vni 110 {
+                vrf-target export target:65000:110;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement fabric-import {
+        term fabric {
+            from community fabric;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term lbpp {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    policy-statement vxlan-import {
+        term target-105 {
+            from community target-105;
+            then accept;
+        }
+        term target-106 {
+            from community target-106;
+            then accept;
+        }
+        term target-107 {
+            from community target-107;
+            then accept;
+        }
+        term target-108 {
+            from community target-108;
+            then accept;
+        }
+        term target-109 {
+            from community target-109;
+            then accept;
+        }
+        term target-110 {
+            from community target-110;
+            then accept;
+        }
+    }
+    community fabric members target:1:1;
+    community target-105 members target:65000:105;
+    community target-106 members target:65000:106;
+    community target-107 members target:65000:107;
+    community target-108 members target:65000:108;
+    community target-109 members target:65000:109;
+    community target-110 members target:65000:110;
+}
+switch-options {
+    vtep-source-interface lo0.0;
+    route-distinguisher 192.168.1.4:65000;
+    vrf-import [ fabric-import vxlan-import ];
+    vrf-target {
+        target:1:1;
+        auto;
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+    vlan-100 {
+        vlan-id 100;
+        vxlan {
+            vni 100;
+        }
+    }
+    vlan-101 {
+        vlan-id 101;
+        vxlan {
+            vni 101;
+        }
+    }
+    vlan-102 {
+        vlan-id 102;
+        vxlan {
+            vni 102;
+        }
+    }
+    vlan-103 {
+        vlan-id 103;
+        vxlan {
+            vni 103;
+        }
+    }
+    vlan-104 {
+        vlan-id 104;
+        vxlan {
+            vni 104;
+        }
+    }
+    vlan-105 {
+        vlan-id 105;
+        vxlan {
+            vni 105;
+        }
+    }
+    vlan-106 {
+        vlan-id 106;
+        vxlan {
+            vni 106;
+        }
+    }
+    vlan-107 {
+        vlan-id 107;
+        vxlan {
+            vni 107;
+        }
+    }
+    vlan-108 {
+        vlan-id 108;
+        vxlan {
+            vni 108;
+        }
+    }
+    vlan-109 {
+        vlan-id 109;
+        vxlan {
+            vni 109;
+        }
+    }
+    vlan-110 {
+        vlan-id 110;
+        vxlan {
+            vni 110;
+        }
+    }
+}

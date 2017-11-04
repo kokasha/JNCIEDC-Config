@@ -1,0 +1,212 @@
+## Last changed: 2017-06-14 12:03:00 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX5;
+    root-authentication {
+        encrypted-password "$5$ORK1dKqD$KzyjDxPCroKPt35f1B5xYt0Xq1Ey65mWTQp7KVP4kQ/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+logical-systems {
+    CORE-1 {
+        interfaces {
+            lt-0/0/0 {
+                unit 0 {
+                    encapsulation ethernet;
+                    peer-unit 1;
+                    family inet {
+                        address 192.168.0.1/30;
+                    }
+                    family inet6;
+                }
+            }
+            xe-0/0/6 {
+                unit 46 {
+                    vlan-id 46;
+                    family inet {
+                        address 192.168.46.2/30;
+                    }
+                    family inet6;
+                }
+                unit 48 {
+                    vlan-id 48;
+                    family inet {
+                        address 192.168.48.2/30;
+                    }
+                    family inet6;
+                }
+            }
+            lo0 {
+                unit 1 {
+                    family inet {
+                        address 10.0.0.5/32;
+                    }
+                    family inet6 {
+                        address 2001:100::5/128;
+                    }
+                }
+            }
+        }
+        protocols {
+            ospf {
+                export static;
+                area 0.0.0.0 {
+                    interface lo0.1;
+                    interface all {
+                        interface-type p2p;
+                    }
+                }
+            }
+            ospf3 {
+                area 0.0.0.0 {
+                    interface all {
+                        interface-type p2p;
+                    }
+                }
+            }
+        }
+        policy-options {
+            policy-statement static {
+                term 1 {
+                    from protocol static;
+                    then accept;
+                }
+            }
+        }
+        routing-options {
+            static {
+                route 0.0.0.0/0 reject;
+            }
+        }
+    }
+    CORE-2 {
+        interfaces {
+            lt-0/0/0 {
+                unit 1 {
+                    encapsulation ethernet;
+                    peer-unit 0;
+                    family inet {
+                        address 192.168.0.2/30;
+                    }
+                    family inet6;
+                }
+            }
+            xe-0/0/6 {
+                unit 47 {
+                    vlan-id 47;
+                    family inet {
+                        address 192.168.47.2/30;
+                    }
+                    family inet6;
+                }
+                unit 49 {
+                    vlan-id 49;
+                    family inet {
+                        address 192.168.49.2/30;
+                    }
+                    family inet6;
+                }
+            }
+            lo0 {
+                unit 2 {
+                    family inet {
+                        address 10.0.0.6/32;
+                    }
+                    family inet6 {
+                        address 2001:100::6/128;
+                    }
+                }
+            }
+        }
+        protocols {
+            ospf {
+                export static;
+                area 0.0.0.0 {
+                    interface lo0.2;
+                    interface all {
+                        interface-type p2p;
+                    }
+                }
+            }
+            ospf3 {
+                area 0.0.0.0 {
+                    interface all {
+                        interface-type p2p;
+                    }
+                }
+            }
+        }
+        policy-options {
+            policy-statement static {
+                term 1 {
+                    from protocol static;
+                    then accept;
+                }
+            }
+        }
+        routing-options {
+            static {
+                route 0.0.0.0/0 reject;
+            }
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            tunnel-services;
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/6 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.5/24;
+            }
+        }
+    }
+}
+snmp {
+    community inetzero;
+    trap-group space {
+        targets {
+            10.10.20.101;
+        }
+    }
+}

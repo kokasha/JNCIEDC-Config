@@ -1,0 +1,200 @@
+## Last changed: 2017-06-14 15:22:54 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$90SJdXUY$9xgD2dhZ.XZLQKJUoaFD2G3XW7OtyJt9uyadSkAxa.0"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.7.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 172.16.5.1/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.3.1/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    irb {
+        unit 100 {
+            family inet {
+                address 10.200.100.253/24 {
+                    virtual-gateway-address 10.200.100.254;
+                }
+            }
+        }
+        unit 101 {
+            family inet {
+                address 10.200.101.253/24 {
+                    virtual-gateway-address 10.200.101.254;
+                }
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.2/32;
+            }
+        }
+    }
+}
+routing-options {
+    router-id 192.168.1.2;
+    route-distinguisher-id 192.168.1.2;
+    autonomous-system 65002;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        log-updown;
+        group underlay {
+            authentication-key "$9$yzXlvLoaUq.5GDBEcyW8ZUjqfz"; ## SECRET-DATA
+            export export-loopback;
+            bfd-liveness-detection {
+                minimum-interval 2000;
+                multiplier 5;
+            }
+            multipath multiple-as;
+            neighbor 172.16.3.2 {
+                peer-as 65003;
+            }
+            neighbor 172.16.5.2 {
+                peer-as 65004;
+            }
+            neighbor 172.16.7.2 {
+                peer-as 65005;
+            }
+        }
+        group overlay {
+            type internal;
+            local-address 192.168.1.2;
+            family evpn {
+                signaling;
+            }
+            authentication-key "$9$cCmyeWg4ZHkPJGQF6C1IylKW7ViHm"; ## SECRET-DATA
+            local-as 65500;
+            bfd-liveness-detection {
+                minimum-interval 2000;
+                multiplier 3;
+            }
+            multipath;
+            neighbor 192.168.1.3;
+            neighbor 192.168.1.4;
+            neighbor 192.168.1.5;
+            neighbor 192.168.1.1;
+        }
+    }
+}
+policy-options {
+    policy-statement export-loopback {
+        term lo0 {
+            from interface lo0.0;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+}
+routing-instances {
+    fabric {
+        vtep-source-interface lo0.0;
+        instance-type virtual-switch;
+        vrf-target target:1:1;
+        protocols {
+            evpn {
+                encapsulation vxlan;
+                extended-vni-list [ 100 101 ];
+                vni-options {
+                    vni 100 {
+                        vrf-target target:100:100;
+                    }
+                    vni 101 {
+                        vrf-target target:101:101;
+                    }
+                }
+                multicast-mode ingress-replication;
+            }
+        }
+        bridge-domains {
+            bd_100 {
+                vlan-id 100;
+                routing-interface irb.100;
+                vxlan {
+                    vni 100;
+                }
+            }
+            bd_101 {
+                vlan-id 101;
+                routing-interface irb.101;
+                vxlan {
+                    vni 101;
+                }
+            }
+        }
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

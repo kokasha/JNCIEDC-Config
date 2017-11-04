@@ -1,0 +1,315 @@
+## Last changed: 2017-06-14 17:12:39 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX4;
+    root-authentication {
+        encrypted-password "$1$HtEX2JKm$mO0mwLxbEmGEzRtK6155u/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file bgp.log {
+            daemon any;
+            match bgp;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        vlan-tagging;
+        unit 111 {
+            vlan-id 111;
+            family inet {
+                address 172.16.200.9/30;
+            }
+        }
+        unit 112 {
+            vlan-id 112;
+            family inet {
+                address 172.16.200.25/30;
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.4.2/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        vlan-tagging;
+        unit 111 {
+            vlan-id 111;
+            family inet {
+                address 172.16.200.13/30;
+            }
+        }
+        unit 113 {
+            vlan-id 113;
+            family inet {
+                address 10.200.113.252/24 {
+                    vrrp-group 1 {
+                        virtual-address 10.200.113.254;
+                        priority 150;
+                        accept-data;
+                        authentication-type md5;
+                        authentication-key "$9$zRKU3/tleWN-wM8qfTzCAvWLNb2"; ## SECRET-DATA
+                    }
+                }
+                address 10.200.113.253/24;
+            }
+        }
+        unit 114 {
+            vlan-id 114;
+            family inet {
+                address 10.200.114.252/24 {
+                    vrrp-group 2 {
+                        virtual-address 10.200.114.254;
+                        vrrp-inherit-from {
+                            active-interface xe-0/0/3.113;
+                            active-group 1;
+                        }
+                    }
+                }
+            }
+        }
+        unit 115 {
+            vlan-id 115;
+            family inet {
+                address 10.200.115.252/24 {
+                    vrrp-group 2 {
+                        virtual-address 10.200.115.254;
+                        vrrp-inherit-from {
+                            active-interface xe-0/0/3.113;
+                            active-group 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.5.2/30;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.11/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.4/32;
+            }
+        }
+    }
+}
+routing-options {
+    autonomous-system 65004;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        log-updown;
+        group inetzero-fabric {
+            authentication-key "$9$NadwgmPQ/9pTzvLxNY25QF/tO"; ## SECRET-DATA
+            export [ export-lo0 export-vrrp ];
+            bfd-liveness-detection {
+                minimum-interval 4000;
+            }
+            multipath multiple-as;
+            neighbor 172.16.4.1 {
+                peer-as 65001;
+            }
+            neighbor 172.16.5.1 {
+                peer-as 65002;
+            }
+        }
+        group customer-3 {
+            import [ default customer-3-import ];
+            authentication-key "$9$41aGi6/t1IcApds24DjCtu1hr"; ## SECRET-DATA
+            export default-only;
+            peer-as 65015;
+            neighbor 172.16.200.10;
+        }
+        group customer-4 {
+            import [ default customer-4-import ];
+            authentication-key "$9$ECUcrvY2aji.oJpBIEeK4aZjqf"; ## SECRET-DATA
+            export default-only;
+            peer-as 65016;
+            neighbor 172.16.200.14;
+        }
+        group customer-6 {
+            import customer-6-import;
+            authentication-key "$9$CUEct0ILX-Y2aNdQn/CB17-VYoG"; ## SECRET-DATA
+            export default-only;
+            peer-as 65017;
+            local-as 65003 private;
+            neighbor 172.16.200.26;
+        }
+    }
+}
+policy-options {
+    policy-statement customer-1 {
+        term community {
+            then {
+                community add customer-1;
+            }
+        }
+    }
+    policy-statement customer-2 {
+        term community {
+            then {
+                community add customer-2;
+            }
+        }
+    }
+    policy-statement customer-3-import {
+        term community {
+            then {
+                community add customer-3;
+            }
+        }
+    }
+    policy-statement customer-4 {
+        term community {
+            then {
+                community add customer-4;
+            }
+        }
+    }
+    policy-statement customer-4-import {
+        term 1 {
+            then {
+                local-preference 150;
+                community add customer-4;
+            }
+        }
+    }
+    policy-statement customer-5 {
+        term community {
+            then {
+                community add customer-5;
+            }
+        }
+    }
+    policy-statement customer-6 {
+        term community {
+            then {
+                community add customer-6;
+            }
+        }
+    }
+    policy-statement customer-6-import {
+        term 1 {
+            then {
+                community add customer-6;
+            }
+        }
+    }
+    policy-statement default {
+        term 1 {
+            from {
+                route-filter 0.0.0.0/0 through 0.0.0.0/32;
+            }
+            then reject;
+        }
+    }
+    policy-statement default-only {
+        term 1 {
+            from {
+                protocol bgp;
+                route-filter 0.0.0.0/0 exact;
+            }
+            then accept;
+        }
+        term 2 {
+            then reject;
+        }
+    }
+    policy-statement export-lo0 {
+        term lo0 {
+            from interface lo0.0;
+            then accept;
+        }
+    }
+    policy-statement export-vrrp {
+        term 1 {
+            from {
+                route-filter 10.200.113.0/24 exact;
+                route-filter 10.200.114.0/24 exact;
+                route-filter 10.200.115.0/24 exact;
+            }
+            then {
+                as-path-prepend "65004 65004";
+                accept;
+            }
+        }
+    }
+    policy-statement lbpp {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    community customer-1 members 65013:1;
+    community customer-2 members 65014:1;
+    community customer-3 members 65015:1;
+    community customer-4 members 65016:1;
+    community customer-5 members 65535:1;
+    community customer-6 members 65017:1;
+    condition default-route {
+        if-route-exists {
+            0.0.0.0/0;
+            table inet.0;
+        }
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

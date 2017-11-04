@@ -1,0 +1,323 @@
+## Last changed: 2017-06-24 16:56:24 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+security {
+    authentication-key-chains {
+        key-chain underlay {
+            key 0 {
+                secret "$9$vQvWNbiHmQz6YgT3nCB1RhSr87"; ## SECRET-DATA
+                start-time "2017-1-1.00:00:00 +0000";
+            }
+        }
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 10.30.36.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 10.30.38.1/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 10.30.37.1/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        vlan-tagging;
+        unit 1000 {
+            vlan-id 1000;
+            family inet {
+                address 10.30.4.2/30;
+            }
+        }
+        unit 2000 {
+            vlan-id 2000;
+            family inet {
+                address 10.30.4.6/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    irb {
+        unit 10 {
+            family inet {
+                address 10.150.10.100/24 {
+                    virtual-gateway-address 10.150.10.254;
+                }
+            }
+        }
+        unit 20 {
+            family inet {
+                address 10.150.20.100/24 {
+                    virtual-gateway-address 10.150.20.254;
+                }
+            }
+        }
+        unit 30 {
+            family inet {
+                address 10.150.30.100/24 {
+                    virtual-gateway-address 10.150.30.254;
+                }
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.44/32;
+            }
+        }
+    }
+}
+routing-options {
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group underlay {
+            type external;
+            export myloopback;
+            local-as 64524;
+            bfd-liveness-detection {
+                minimum-interval 3000;
+                multiplier 3;
+                authentication {
+                    key-chain underlay;
+                    algorithm keyed-md5;
+                }
+                session-mode single-hop;
+            }
+            multipath multiple-as;
+            neighbor 10.30.37.2 {
+                peer-as 64513;
+                as-override;
+            }
+            neighbor 10.30.38.2 {
+                peer-as 64514;
+            }
+            neighbor 10.30.36.2 {
+                peer-as 64515;
+            }
+            neighbor 10.30.4.1 {
+                peer-as 64513;
+                local-as 64524;
+                as-override;
+            }
+        }
+        group overlay {
+            type internal;
+            local-address 192.168.1.44;
+            family evpn {
+                signaling;
+            }
+            cluster 192.168.1.44;
+            local-as 65535;
+            multipath;
+            allow 192.168.1.0/29;
+        }
+    }
+}
+policy-options {
+    policy-statement direct-2-bgp {
+        term 1 {
+            from protocol direct;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        then {
+            load-balance per-packet;
+        }
+    }
+    policy-statement myloopback {
+        term 1 {
+            from interface lo0.0;
+            then accept;
+        }
+    }
+    policy-statement vpn1-import {
+        term 1 {
+            from community evpn;
+            then accept;
+        }
+        term 2 {
+            from community vpn1;
+            then accept;
+        }
+        term 3 {
+            from community vni-10;
+            then accept;
+        }
+        term 4 {
+            from community vni-20;
+            then accept;
+        }
+    }
+    policy-statement vpn2-import {
+        term 1 {
+            from community evpn;
+            then accept;
+        }
+        term 2 {
+            from community vpn2;
+            then accept;
+        }
+        term 3 {
+            from community vni-30;
+            then accept;
+        }
+    }
+    community evpn members target:1:1;
+    community vni-10 members target:1:10;
+    community vni-20 members target:1:20;
+    community vni-30 members target:1:30;
+    community vpn1 members target:1:1000;
+    community vpn2 members target:1:2000;
+}
+routing-instances {
+    dc-vpns {
+        instance-type virtual-router;
+        interface xe-0/0/5.2000;
+        interface irb.10;
+        interface irb.20;
+        interface irb.30;
+        protocols {
+            bgp {
+                traceoptions {
+                    file bgp;
+                    flag all;
+                }
+                group dc-vpns {
+                    type external;
+                    export direct-2-bgp;
+                    local-as 64524;
+                    neighbor 10.30.4.5 {
+                        peer-as 64513;
+                    }
+                }
+            }
+        }
+    }
+    vpn1 {
+        vtep-source-interface lo0.0;
+        instance-type virtual-switch;
+        route-distinguisher 192.168.1.44:1;
+        vrf-import vpn1-import;
+        vrf-target target:1:1000;
+        protocols {
+            evpn {
+                encapsulation vxlan;
+                extended-vni-list [ 10 20 ];
+                multicast-mode ingress-replication;
+            }
+        }
+        bridge-domains {
+            iz-10 {
+                domain-type bridge;
+                vlan-id 10;
+                routing-interface irb.10;
+                vxlan {
+                    vni 10;
+                    ingress-node-replication;
+                }
+            }
+            iz-20 {
+                domain-type bridge;
+                vlan-id 20;
+                routing-interface irb.20;
+                vxlan {
+                    vni 20;
+                    ingress-node-replication;
+                }
+            }
+        }
+    }
+    vpn2 {
+        vtep-source-interface lo0.0;
+        instance-type virtual-switch;
+        route-distinguisher 192.168.1.44:2;
+        vrf-import vpn2-import;
+        vrf-target target:1:2000;
+        protocols {
+            evpn {
+                encapsulation vxlan;
+                extended-vni-list 30;
+                multicast-mode ingress-replication;
+            }
+        }
+        bridge-domains {
+            iz-30 {
+                domain-type bridge;
+                vlan-id 10;
+                routing-interface irb.30;
+                vxlan {
+                    vni 30;
+                    ingress-node-replication;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,128 @@
+## Last changed: 2017-06-14 18:37:19 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.48.21/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 172.16.48.17/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.48.13/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        vlan-tagging;
+        unit 11 {
+            vlan-id 11;
+            family inet {
+                address 172.16.24.29/30;
+            }
+            family mpls;
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 11 {
+            vlan-id 11;
+            family inet {
+                address 172.16.48.29/30;
+            }
+            family mpls;
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    irb {
+        unit 250 {
+            family inet {
+                address 192.168.250.4/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.31.50.4/32;
+            }
+        }
+    }
+}
+protocols {
+    mpls {
+        interface xe-0/0/6.11;
+        interface xe-0/0/5.11;
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface lo0.0;
+            interface xe-0/0/6.11;
+            interface xe-0/0/5.11;
+        }
+    }
+    ldp {
+        interface xe-0/0/5.11;
+        interface xe-0/0/6.11;
+    }
+}

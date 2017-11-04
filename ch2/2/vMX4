@@ -1,0 +1,83 @@
+## Last changed: 2017-06-14 17:20:35 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$90SJdXUY$9xgD2dhZ.XZLQKJUoaFD2G3XW7OtyJt9uyadSkAxa.0"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 100.0.0.6/31;
+            }
+            family inet6;
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 100.0.0.8/31;
+            }
+            family inet6;
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 100.0.0.10/31;
+            }
+            family inet6;
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 100.1.0.4/32;
+            }
+            family inet6 {
+                address 2001:100::4/128;
+            }
+        }
+    }
+}

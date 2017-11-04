@@ -1,0 +1,865 @@
+## Last changed: 2017-06-14 11:47:55 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX6;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 6;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        gigether-options {
+            802.3ad ae4;
+        }
+    }
+    xe-0/0/1 {
+        gigether-options {
+            802.3ad ae4;
+        }
+    }
+    xe-0/0/2 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 10.200.100.1/24;
+            }
+        }
+        unit 101 {
+            vlan-id 101;
+            family inet {
+                address 10.200.101.1/24;
+            }
+        }
+        unit 102 {
+            vlan-id 102;
+            family inet {
+                address 10.200.102.1/24;
+            }
+        }
+        unit 103 {
+            vlan-id 103;
+            family inet {
+                address 10.200.103.1/24;
+            }
+        }
+        unit 104 {
+            vlan-id 104;
+            family inet {
+                address 10.200.104.1/24;
+            }
+        }
+        unit 105 {
+            vlan-id 105;
+            family inet {
+                address 10.200.105.1/24;
+            }
+        }
+        unit 106 {
+            vlan-id 106;
+            family inet {
+                address 10.200.106.1/24;
+            }
+        }
+        unit 107 {
+            vlan-id 107;
+            family inet {
+                address 10.200.107.1/24;
+            }
+        }
+        unit 108 {
+            vlan-id 108;
+            family inet {
+                address 10.200.108.1/24;
+            }
+        }
+        unit 109 {
+            vlan-id 109;
+            family inet {
+                address 10.200.109.1/24;
+            }
+        }
+        unit 110 {
+            vlan-id 110;
+            family inet {
+                address 10.200.110.1/24;
+            }
+        }
+    }
+    xe-0/0/3 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 10.200.100.2/24;
+            }
+        }
+        unit 101 {
+            vlan-id 101;
+            family inet {
+                address 10.200.101.2/24;
+            }
+        }
+        unit 102 {
+            vlan-id 102;
+            family inet {
+                address 10.200.102.2/24;
+            }
+        }
+        unit 103 {
+            vlan-id 103;
+            family inet {
+                address 10.200.103.2/24;
+            }
+        }
+        unit 104 {
+            vlan-id 104;
+            family inet {
+                address 10.200.104.2/24;
+            }
+        }
+        unit 105 {
+            vlan-id 105;
+            family inet {
+                address 10.200.105.2/24;
+            }
+        }
+        unit 106 {
+            vlan-id 106;
+            family inet {
+                address 10.200.106.2/24;
+            }
+        }
+        unit 107 {
+            vlan-id 107;
+            family inet {
+                address 10.200.107.2/24;
+            }
+        }
+        unit 108 {
+            vlan-id 108;
+            family inet {
+                address 10.200.108.2/24;
+            }
+        }
+        unit 109 {
+            vlan-id 109;
+            family inet {
+                address 10.200.109.2/24;
+            }
+        }
+        unit 110 {
+            vlan-id 110;
+            family inet {
+                address 10.200.110.2/24;
+            }
+        }
+    }
+    xe-0/0/4 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 10.200.100.3/24;
+            }
+        }
+        unit 101 {
+            vlan-id 101;
+            family inet {
+                address 10.200.101.3/24;
+            }
+        }
+        unit 102 {
+            vlan-id 102;
+            family inet {
+                address 10.200.102.3/24;
+            }
+        }
+        unit 103 {
+            vlan-id 103;
+            family inet {
+                address 10.200.103.3/24;
+            }
+        }
+        unit 104 {
+            vlan-id 104;
+            family inet {
+                address 10.200.104.3/24;
+            }
+        }
+        unit 105 {
+            vlan-id 105;
+            family inet {
+                address 10.200.105.3/24;
+            }
+        }
+        unit 106 {
+            vlan-id 106;
+            family inet {
+                address 10.200.106.3/24;
+            }
+        }
+        unit 107 {
+            vlan-id 107;
+            family inet {
+                address 10.200.107.3/24;
+            }
+        }
+        unit 108 {
+            vlan-id 108;
+            family inet {
+                address 10.200.108.3/24;
+            }
+        }
+        unit 109 {
+            vlan-id 109;
+            family inet {
+                address 10.200.109.3/24;
+            }
+        }
+        unit 110 {
+            vlan-id 110;
+            family inet {
+                address 10.200.110.3/24;
+            }
+        }
+    }
+    xe-0/0/5 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/6 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    ae0 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        aggregated-ether-options {
+            lacp {
+                inactive: active;
+                force-up;
+            }
+        }
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 10.200.100.4/24;
+            }
+        }
+        unit 101 {
+            vlan-id 101;
+            family inet {
+                address 10.200.101.4/24;
+            }
+        }
+        unit 102 {
+            vlan-id 102;
+            family inet {
+                address 10.200.102.4/24;
+            }
+        }
+        unit 103 {
+            vlan-id 103;
+            family inet {
+                address 10.200.103.4/24;
+            }
+        }
+        unit 104 {
+            vlan-id 104;
+            family inet {
+                address 10.200.104.4/24;
+            }
+        }
+        unit 105 {
+            vlan-id 105;
+            family inet {
+                address 10.200.105.4/24;
+            }
+        }
+        unit 106 {
+            vlan-id 106;
+            family inet {
+                address 10.200.106.4/24;
+            }
+        }
+        unit 107 {
+            vlan-id 107;
+            family inet {
+                address 10.200.107.4/24;
+            }
+        }
+        unit 108 {
+            vlan-id 108;
+            family inet {
+                address 10.200.108.4/24;
+            }
+        }
+        unit 109 {
+            vlan-id 109;
+            family inet {
+                address 10.200.109.4/24;
+            }
+        }
+        unit 110 {
+            vlan-id 110;
+            family inet {
+                address 10.200.110.4/24;
+            }
+        }
+    }
+    ae4 {
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 10-12;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.6/24;
+            }
+        }
+    }
+    irb {
+        unit 10 {
+            family inet {
+                address 10.0.10.1/24;
+            }
+        }
+        unit 11 {
+            family inet {
+                address 10.0.11.1/24;
+            }
+        }
+        unit 12 {
+            family inet {
+                address 10.0.12.1/24;
+            }
+        }
+    }
+}
+routing-options {
+    forwarding-table {
+        export lb;
+    }
+}
+protocols {
+    lldp {
+        interface all;
+        interface fxp0 {
+            disable;
+        }
+    }
+}
+policy-options {
+    policy-statement lb {
+        then {
+            load-balance per-packet;
+        }
+    }
+}
+routing-instances {
+    DC1-S1-VL10 {
+        instance-type virtual-router;
+        interface irb.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.0.10.254;
+            }
+        }
+    }
+    DC1-S1-VL100 {
+        instance-type virtual-router;
+        interface xe-0/0/2.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.100.254;
+            }
+        }
+    }
+    DC1-S1-VL101 {
+        instance-type virtual-router;
+        interface xe-0/0/2.101;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.101.254;
+            }
+        }
+    }
+    DC1-S1-VL102 {
+        instance-type virtual-router;
+        interface xe-0/0/2.102;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.102.254;
+            }
+        }
+    }
+    DC1-S1-VL103 {
+        instance-type virtual-router;
+        interface xe-0/0/2.103;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.103.254;
+            }
+        }
+    }
+    DC1-S1-VL104 {
+        instance-type virtual-router;
+        interface xe-0/0/2.104;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.104.254;
+            }
+        }
+    }
+    DC1-S1-VL105 {
+        instance-type virtual-router;
+        interface xe-0/0/2.105;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.105.254;
+            }
+        }
+    }
+    DC1-S1-VL106 {
+        instance-type virtual-router;
+        interface xe-0/0/2.106;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.106.254;
+            }
+        }
+    }
+    DC1-S1-VL107 {
+        instance-type virtual-router;
+        interface xe-0/0/2.107;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.107.254;
+            }
+        }
+    }
+    DC1-S1-VL108 {
+        instance-type virtual-router;
+        interface xe-0/0/2.108;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.108.254;
+            }
+        }
+    }
+    DC1-S1-VL109 {
+        instance-type virtual-router;
+        interface xe-0/0/2.109;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.109.254;
+            }
+        }
+    }
+    DC1-S1-VL11 {
+        instance-type virtual-router;
+        interface irb.11;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.0.11.254;
+            }
+        }
+        protocols {
+            ospf {
+                area 0.0.0.0 {
+                    interface irb.11 {
+                        priority 0;
+                    }
+                }
+            }
+        }
+    }
+    DC1-S1-VL110 {
+        instance-type virtual-router;
+        interface xe-0/0/2.110;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.110.254;
+            }
+        }
+    }
+    DC1-S1-VL12 {
+        instance-type virtual-router;
+        interface irb.12;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.0.12.254;
+            }
+        }
+    }
+    DC1-S2-VL100 {
+        instance-type virtual-router;
+        interface xe-0/0/3.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.100.254;
+            }
+        }
+    }
+    DC1-S2-VL101 {
+        instance-type virtual-router;
+        interface xe-0/0/3.101;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.101.254;
+            }
+        }
+    }
+    DC1-S2-VL102 {
+        instance-type virtual-router;
+        interface xe-0/0/3.102;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.102.254;
+            }
+        }
+    }
+    DC1-S2-VL103 {
+        instance-type virtual-router;
+        interface xe-0/0/3.103;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.103.254;
+            }
+        }
+    }
+    DC1-S2-VL104 {
+        instance-type virtual-router;
+        interface xe-0/0/3.104;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.104.254;
+            }
+        }
+    }
+    DC1-S2-VL105 {
+        instance-type virtual-router;
+        interface xe-0/0/3.105;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.105.254;
+            }
+        }
+    }
+    DC1-S2-VL106 {
+        instance-type virtual-router;
+        interface xe-0/0/3.106;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.106.254;
+            }
+        }
+    }
+    DC1-S2-VL107 {
+        instance-type virtual-router;
+        interface xe-0/0/3.107;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.107.254;
+            }
+        }
+    }
+    DC1-S2-VL108 {
+        instance-type virtual-router;
+        interface xe-0/0/3.108;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.108.254;
+            }
+        }
+    }
+    DC1-S2-VL109 {
+        instance-type virtual-router;
+        interface xe-0/0/3.109;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.109.254;
+            }
+        }
+    }
+    DC1-S2-VL110 {
+        instance-type virtual-router;
+        interface xe-0/0/3.110;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.110.254;
+            }
+        }
+    }
+    DC1-S3-VL100 {
+        instance-type virtual-router;
+        interface xe-0/0/4.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.100.254;
+            }
+        }
+    }
+    DC1-S3-VL101 {
+        instance-type virtual-router;
+        interface xe-0/0/4.101;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.101.254;
+            }
+        }
+    }
+    DC1-S3-VL102 {
+        instance-type virtual-router;
+        interface xe-0/0/4.102;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.102.254;
+            }
+        }
+    }
+    DC1-S3-VL103 {
+        instance-type virtual-router;
+        interface xe-0/0/4.103;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.103.254;
+            }
+        }
+    }
+    DC1-S3-VL104 {
+        instance-type virtual-router;
+        interface xe-0/0/4.104;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.104.254;
+            }
+        }
+    }
+    DC1-S3-VL105 {
+        instance-type virtual-router;
+        interface xe-0/0/4.105;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.105.254;
+            }
+        }
+    }
+    DC1-S3-VL106 {
+        instance-type virtual-router;
+        interface xe-0/0/4.106;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.106.254;
+            }
+        }
+    }
+    DC1-S3-VL107 {
+        instance-type virtual-router;
+        interface xe-0/0/4.107;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.107.254;
+            }
+        }
+    }
+    DC1-S3-VL108 {
+        instance-type virtual-router;
+        interface xe-0/0/4.108;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.108.254;
+            }
+        }
+    }
+    DC1-S3-VL109 {
+        instance-type virtual-router;
+        interface xe-0/0/4.109;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.109.254;
+            }
+        }
+    }
+    DC1-S3-VL110 {
+        instance-type virtual-router;
+        interface xe-0/0/4.110;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.110.254;
+            }
+        }
+    }
+    DC1-S4-VL100 {
+        instance-type virtual-router;
+        interface ae0.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.100.254;
+            }
+        }
+    }
+    DC1-S4-VL101 {
+        instance-type virtual-router;
+        interface ae0.101;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.101.254;
+            }
+        }
+    }
+    DC1-S4-VL102 {
+        instance-type virtual-router;
+        interface ae0.102;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.102.254;
+            }
+        }
+    }
+    DC1-S4-VL103 {
+        instance-type virtual-router;
+        interface ae0.103;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.103.254;
+            }
+        }
+    }
+    DC1-S4-VL104 {
+        instance-type virtual-router;
+        interface ae0.104;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.104.254;
+            }
+        }
+    }
+    DC1-S4-VL105 {
+        instance-type virtual-router;
+        interface ae0.105;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.105.254;
+            }
+        }
+    }
+    DC1-S4-VL106 {
+        instance-type virtual-router;
+        interface ae0.106;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.106.254;
+            }
+        }
+    }
+    DC1-S4-VL107 {
+        instance-type virtual-router;
+        interface ae0.107;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.107.254;
+            }
+        }
+    }
+    DC1-S4-VL108 {
+        instance-type virtual-router;
+        interface ae0.108;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.108.254;
+            }
+        }
+    }
+    DC1-S4-VL109 {
+        instance-type virtual-router;
+        interface ae0.109;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.109.254;
+            }
+        }
+    }
+    DC1-S4-VL110 {
+        instance-type virtual-router;
+        interface ae0.110;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 10.200.110.254;
+            }
+        }
+    }
+}
+bridge-domains {
+    bd-10 {
+        vlan-id 10;
+        routing-interface irb.10;
+    }
+    bd-11 {
+        vlan-id 11;
+        routing-interface irb.11;
+    }
+    bd-12 {
+        vlan-id 12;
+        routing-interface irb.12;
+    }
+}

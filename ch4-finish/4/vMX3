@@ -1,0 +1,287 @@
+## Last changed: 2017-06-14 18:42:33 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX3;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            tunnel-services;
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    lt-0/0/0 {
+        unit 0 {
+            encapsulation ethernet-bridge;
+            peer-unit 1;
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 250;
+            }
+        }
+        unit 1 {
+            encapsulation ethernet-bridge;
+            peer-unit 0;
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 250;
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.48.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 172.16.48.5/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.48.9/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        vlan-tagging;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 172.16.24.25/30;
+            }
+            family mpls;
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 172.16.48.25/30;
+            }
+            family mpls;
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.3/24;
+            }
+        }
+    }
+    irb {
+        unit 100 {
+            family inet {
+                address 192.168.100.254/24;
+            }
+            mac 00:00:00:00:01:00;
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.31.50.3/32;
+            }
+        }
+    }
+}
+routing-options {
+    route-distinguisher-id 172.31.50.3;
+    autonomous-system 65001;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    mpls {
+        interface xe-0/0/6.10;
+        interface xe-0/0/5.10;
+    }
+    bgp {
+        group underlay {
+            export export-lo0;
+            local-as 65001;
+            multipath multiple-as;
+            neighbor 172.16.48.2 {
+                peer-as 65003;
+            }
+            neighbor 172.16.48.6 {
+                peer-as 65004;
+            }
+            neighbor 172.16.48.10 {
+                peer-as 65005;
+            }
+        }
+        group overlay {
+            type internal;
+            local-address 172.31.50.3;
+            family evpn {
+                signaling;
+            }
+            local-as 65500;
+            neighbor 172.31.50.4;
+            neighbor 172.31.49.3;
+            neighbor 172.31.49.4;
+            neighbor 172.31.49.5;
+        }
+        group dci {
+            type internal;
+            local-address 172.31.50.3;
+            family evpn {
+                signaling;
+            }
+            local-as 65000;
+            neighbor 172.31.50.2;
+        }
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface lo0.0;
+            interface xe-0/0/6.10;
+            interface xe-0/0/5.10;
+            interface irb.100 {
+                passive;
+            }
+        }
+    }
+    ldp {
+        interface xe-0/0/5.10;
+        interface xe-0/0/6.10;
+    }
+}
+policy-options {
+    policy-statement export-lo0 {
+        term lo0 {
+            from interface lo0.0;
+            then accept;
+        }
+    }
+    policy-statement fabric-import {
+        term leaf-nodes {
+            from community leaf-nodes;
+            then accept;
+        }
+        term spine-nodes {
+            from community spine-nodes;
+            then accept;
+        }
+        term vni-100 {
+            from community vni-100;
+            then accept;
+        }
+        term vni-250 {
+            from community vni-250;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term lbpp {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    community leaf-nodes members target:65000:100;
+    community spine-nodes members target:65000:101;
+    community vni-100 members target:65500:100;
+    community vni-250 members target:65500:250;
+}
+routing-instances {
+    evpn {
+        instance-type virtual-switch;
+        interface lt-0/0/0.0;
+        vrf-target target:6500:250;
+        protocols {
+            evpn {
+                extended-vlan-list 250;
+            }
+        }
+        bridge-domains {
+            bd-250 {
+                vlan-id 250;
+            }
+        }
+    }
+    overlay {
+        vtep-source-interface lo0.0;
+        instance-type virtual-switch;
+        interface lt-0/0/0.1;
+        vrf-import fabric-import;
+        vrf-target target:65000:101;
+        protocols {
+            evpn {
+                encapsulation vxlan;
+                extended-vni-list [ 100 250 ];
+                vni-options {
+                    vni 100 {
+                        vrf-target target:65500:100;
+                    }
+                    vni 250 {
+                        vrf-target target:65500:250;
+                    }
+                }
+                multicast-mode ingress-replication;
+            }
+        }
+        bridge-domains {
+            bd-100 {
+                vlan-id 100;
+                routing-interface irb.100;
+                vxlan {
+                    vni 100;
+                }
+            }
+            bd-250 {
+                vlan-id 250;
+                routing-interface irb.250;
+                vxlan {
+                    vni 250;
+                }
+            }
+        }
+    }
+}

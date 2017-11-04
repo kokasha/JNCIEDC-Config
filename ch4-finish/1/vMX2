@@ -1,0 +1,221 @@
+## Last changed: 2017-06-14 17:30:34 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX2;
+    root-authentication {
+        encrypted-password "$5$ow/o91wk$yosYzwp.mL62n.onZj4Az3r3DGYNglJrR.31ay67bY9"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 3;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        unit 0 {
+            family inet {
+                address 172.16.0.2/30;
+            }
+            family mpls;
+        }
+    }
+    xe-0/0/5 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 2 {
+            vlan-id 2;
+            family inet {
+                address 172.16.0.21/30;
+            }
+            family mpls;
+        }
+        unit 10 {
+            description "vMX5 logical-system CE routing-instance CE2-BLUE";
+            vlan-id 10;
+            family inet {
+                address 10.0.10.5/30;
+            }
+        }
+        unit 20 {
+            description "vMX5 logical-system CE routing-instance CE2-GREEN";
+            vlan-id 20;
+            family inet {
+                address 10.0.20.5/30;
+            }
+        }
+        unit 30 {
+            description "vMX5 logical-system CE routing-instance CE1-RED";
+            vlan-id 30;
+            family inet {
+                address 10.0.30.5/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.2/32;
+            }
+        }
+    }
+}
+routing-options {
+    route-distinguisher-id 172.16.1.2;
+    autonomous-system 65000;
+}
+protocols {
+    mpls {
+        traffic-engineering {
+            mpls-forwarding;
+        }
+        no-propagate-ttl;
+        icmp-tunneling;
+        interface xe-0/0/0.0;
+        interface xe-0/0/5.2;
+    }
+    bgp {
+        group ibgp {
+            type internal;
+            local-address 172.16.1.2;
+            family inet-vpn {
+                unicast;
+            }
+            authentication-key "$9$IrNESews4UDkgoA0BIrl24aUHm"; ## SECRET-DATA
+            neighbor 172.16.1.1;
+            neighbor 172.16.1.3;
+            neighbor 172.16.1.4;
+        }
+    }
+    ospf {
+        reference-bandwidth 100g;
+        area 0.0.0.0 {
+            interface lo0.0 {
+                passive;
+            }
+            interface xe-0/0/0.0 {
+                interface-type p2p;
+                ldp-synchronization;
+                authentication {
+                    md5 1 key "$9$y3olvLoaUq.5GDBEcyW8ZUjqfz"; ## SECRET-DATA
+                }
+            }
+            interface xe-0/0/5.2 {
+                interface-type p2p;
+                ldp-synchronization;
+                authentication {
+                    md5 1 key "$9$IPEESews4UDkgoA0BIrl24aUHm"; ## SECRET-DATA
+                }
+            }
+        }
+    }
+    ldp {
+        track-igp-metric;
+        interface xe-0/0/0.0;
+        interface xe-0/0/5.2;
+        session-group 172.16.1.0/24 {
+            authentication-key "$9$vGRWX-UDk5T3Hqhrev7Nik.5F/"; ## SECRET-DATA
+        }
+    }
+}
+policy-options {
+    policy-statement CE1-export {
+        term as-prepend {
+            then as-path-prepend "65000 65000";
+        }
+    }
+    policy-statement bgp-to-ospf {
+        term 1 {
+            from protocol bgp;
+            then accept;
+        }
+    }
+}
+routing-instances {
+    iNET-BLUE {
+        instance-type vrf;
+        interface xe-0/0/5.10;
+        vrf-target target:65000:1;
+        vrf-table-label;
+        routing-options {
+            static {
+                route 192.168.2.0/24 next-hop 10.0.10.6;
+            }
+        }
+    }
+    iNET-GREEN {
+        instance-type vrf;
+        interface xe-0/0/5.20;
+        vrf-target target:65000:2;
+        vrf-table-label;
+        protocols {
+            ospf {
+                export bgp-to-ospf;
+                area 0.0.0.0 {
+                    interface all;
+                }
+            }
+        }
+    }
+    iNET-RED {
+        instance-type vrf;
+        interface xe-0/0/5.30;
+        vrf-target target:65000:3;
+        vrf-table-label;
+        protocols {
+            bgp {
+                group CE {
+                    export CE1-export;
+                    peer-as 65500;
+                    as-override;
+                    neighbor 10.0.30.6;
+                }
+            }
+        }
+    }
+}

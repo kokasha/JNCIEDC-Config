@@ -1,0 +1,96 @@
+## Last changed: 2017-06-25 14:52:50 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;          
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 10.30.36.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 10.30.38.1/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 10.30.37.1/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        vlan-tagging;
+        unit 1000 {
+            vlan-id 1000;
+            family inet {
+                address 10.30.4.2/30;
+            }
+        }
+        unit 2000 {
+            vlan-id 2000;
+            family inet {
+                address 10.30.4.6/30;
+            }                           
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.44/32;
+            }
+        }
+    }
+}

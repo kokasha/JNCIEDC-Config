@@ -1,0 +1,115 @@
+## Last changed: 2017-06-25 15:53:05 UTC
+version 12.1X47-D20.7;
+system {
+    host-name vSRX;
+    root-authentication {
+        encrypted-password "$1$qC6UB5RS$n.5CL8Wp7IPp3ur5xrR/L1"; ## SECRET-DATA
+    }
+    login {
+        class inetzero {
+            login-tip;
+            permissions [ view view-configuration ];
+        }
+        user inetzero {
+            uid 2000;
+            class inetzero;
+            authentication {
+                encrypted-password "$1$PyW2ieTm$IOpmNvIJvxfiDPS7DPAc90"; ## SECRET-DATA
+            }
+        }
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$1$ZWoFbJTI$XL0oPIMXfUpBLmTZav5H50"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+    }
+    syslog {
+        file messages {
+            any any;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file traffic-log {
+            any any;
+            match RT_FLOW_SESSION;
+        }
+    }
+    license {
+        autoupdate {
+            url https://ae1.juniper.net/junos/key_retrieval;
+        }
+    }
+}
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 10.40.3.1/30;
+                address 10.40.2.1/31;
+            }
+        }
+    }
+    ge-0/0/1 {
+        vlan-tagging;
+        unit 1000 {
+            description underlay;
+            vlan-id 1000;
+            family inet {
+                address 10.40.1.2/30;
+            }
+        }
+        unit 2000 {
+            description dc-vpns;
+            vlan-id 2000;
+            family inet {
+                address 10.40.2.2/30;
+            }
+        }
+        unit 3000 {
+            description untrust;
+            vlan-id 3000;
+            family inet {
+                address 1.1.1.2/29;
+            }
+        }
+    }
+    ge-0/0/3 {
+        description "management do not delete";
+        unit 0 {
+            family inet {
+                address 10.10.20.7/24;
+            }
+        }
+    }
+}
+routing-options {
+    router-id 10.40.1.1;
+    autonomous-system 64516;
+}
+security {
+    zones {
+        functional-zone management {
+            interfaces {
+                ge-0/0/3.0;
+            }
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                    ssh;
+                    telnet;
+                }
+            }
+        }
+    }
+}

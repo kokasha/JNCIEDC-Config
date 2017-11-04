@@ -1,0 +1,224 @@
+## Last changed: 2017-06-14 15:51:47 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX2;
+    root-authentication {
+        encrypted-password "$1$vZ1mPrBz$5H7htwNj4H8UiWfqgGNR6."; ## SECRET-DATA
+        ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 1;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        ether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 3 {
+            vlan-id 3;
+            family inet {
+                address 192.168.3.0/31;
+            }
+        }
+        unit 4 {
+            vlan-id 4;
+            family inet {
+                address 192.168.4.0/31;
+            }
+        }
+    }
+    ae0 {
+        esi {
+            00:12:12:12:12:12:12:12:12:12;
+            all-active;
+        }
+        aggregated-ether-options {
+            lacp {
+                active;
+                system-id 12:12:12:12:12:12;
+            }
+        }
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members [ 200 300 400 ];
+                }
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.9/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.2/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    router-id 172.16.1.2;
+    autonomous-system 65000 loops 2;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group pod-leaf {
+            hold-time 9;
+            authentication-key "$9$.PT3REyMWxSrGik.zFcylMX-"; ## SECRET-DATA
+            export advertise-lo0;
+            peer-as 65500;
+            multipath;
+            neighbor 192.168.3.1;
+            neighbor 192.168.4.1;
+        }
+        group overlay {
+            type internal;
+            local-address 172.16.1.2;
+            family evpn {
+                signaling;
+            }
+            local-as 65250;
+            neighbor 172.16.1.3;
+            neighbor 172.16.1.1;
+            neighbor 172.16.1.10;
+            neighbor 172.16.1.20;
+        }
+    }
+    evpn {
+        encapsulation vxlan;
+        extended-vni-list [ 400 all ];
+        multicast-mode ingress-replication;
+        vni-options {
+            vni 400 {
+                vrf-target export target:65534:1;
+            }
+        }
+    }
+    l2-learning {
+        decapsulate-accept-inner-vlan;
+    }
+}
+policy-options {
+    policy-statement advertise-lo0 {
+        term lo0 {
+            from {
+                protocol direct;
+                route-filter 172.16.1.0/24 prefix-length-range /32-/32;
+            }
+            then {
+                community add vqfx2;
+                accept;
+            }
+        }
+    }
+    policy-statement fabric-import {
+        term fabric-l3 {
+            from community fabric-l3;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term lbpp {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    community fabric-l3 members target:65534:1;
+    community vqfx1 members 65000:1;
+    community vqfx2 members 65000:2;
+    community vqfx3 members 65000:3;
+}
+switch-options {
+    vtep-source-interface lo0.0;
+    route-distinguisher 172.16.1.2:65000;
+    vrf-import fabric-import;
+    vrf-target {
+        target:1:1;
+        auto;
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+    vlan-200 {
+        vlan-id 200;
+        vxlan {
+            vni 200;
+        }
+    }
+    vlan-300 {
+        vlan-id 300;
+        vxlan {
+            vni 300;
+            encapsulate-inner-vlan;
+        }
+    }
+    vlan-400 {
+        vlan-id 400;
+        vxlan {
+            vni 400;
+        }
+    }
+}

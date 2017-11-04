@@ -1,0 +1,179 @@
+## Last changed: 2017-06-14 19:01:03 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX3;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 1;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/1 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 192.168.1.2/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 192.168.1.10/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 192.168.1.18/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        unit 0 {
+            family inet {
+                address 192.168.1.34/30;
+            }
+        }
+    }
+    ae0 {
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            family inet {
+                address 192.168.1.26/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.3/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.10.3/32;
+            }
+        }
+    }
+}
+routing-options {
+    router-id 192.168.10.3;
+    autonomous-system 65000;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group fabric {
+            type internal;
+            local-address 192.168.10.3;
+            family inet {
+                unicast {
+                    add-path {
+                        receive;
+                        send {
+                            path-count 3;
+                        }
+                    }
+                }
+            }
+            cluster 0.0.0.1;
+            multipath;
+            neighbor 192.168.0.3;
+            neighbor 192.168.0.4;
+            neighbor 192.168.0.5;
+        }
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface xe-0/0/2.0 {
+                interface-type p2p;
+            }
+            interface xe-0/0/4.0 {
+                interface-type p2p;
+            }
+            interface xe-0/0/3.0 {
+                interface-type p2p;
+            }
+            interface lo0.0 {
+                passive;
+            }
+            interface xe-0/0/5.0 {
+                interface-type p2p;
+            }
+            interface ae0.0 {
+                interface-type p2p;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement lbpp {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+}

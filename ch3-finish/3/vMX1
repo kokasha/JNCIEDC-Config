@@ -1,0 +1,232 @@
+## Last changed: 2017-06-14 15:52:15 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX1;
+    root-authentication {
+        encrypted-password "$5$ORK1dKqD$KzyjDxPCroKPt35f1B5xYt0Xq1Ey65mWTQp7KVP4kQ/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 1;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/1 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 7 {
+            vlan-id 7;
+            family inet {
+                address 192.168.7.0/31;
+            }
+        }
+        unit 9 {
+            vlan-id 9;
+            family inet {
+                address 192.168.9.0/31;
+            }
+        }
+    }
+    ae0 {
+        aggregated-ether-options {
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            family inet {
+                address 192.168.0.0/31;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.1/24;
+            }
+        }
+    }
+    irb {
+        unit 400 {
+            family inet {
+                address 192.168.220.252/24 {
+                    virtual-gateway-address 192.168.220.254;
+                }
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.10/32;
+            }
+        }
+    }
+}
+snmp {
+    community inetzero;
+    trap-group space {
+        targets {
+            10.10.20.101;
+        }
+    }
+}
+routing-options {
+    route-distinguisher-id 172.16.1.10;
+    autonomous-system 65534;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group core-pod {
+            hold-time 9;
+            authentication-key "$9$XER7dskqf3nCP5lM8XbwmfT39p"; ## SECRET-DATA
+            export [ advertise-lo0 advertise-direct ];
+            peer-as 65500;
+            multipath;
+            neighbor 192.168.7.1;
+            neighbor 192.168.9.1;
+        }
+        group overlay {
+            type internal;
+            local-address 172.16.1.10;
+            family evpn {
+                signaling;
+            }
+            local-as 65250;
+            neighbor 172.16.1.2;
+            neighbor 172.16.1.1;
+            neighbor 172.16.1.3;
+            neighbor 172.16.1.20;
+        }
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface ae0.0 {
+                interface-type p2p;
+            }
+            interface lo0.0 {
+                passive;
+            }
+        }
+    }
+}
+policy-options {
+    prefix-list fabric-direct-irb {
+        apply-path "interfaces irb unit <*> family inet address <*>";
+    }
+    policy-statement advertise-direct {
+        term irb {
+            from {
+                protocol direct;
+                prefix-list fabric-direct-irb;
+            }
+            then accept;
+        }
+    }
+    policy-statement advertise-lo0 {
+        term lo0 {
+            from {
+                protocol direct;
+                route-filter 172.16.1.0/24 prefix-length-range /32-/32;
+            }
+            then accept;
+        }
+    }
+    policy-statement import-fabric-l3 {
+        term leaf {
+            from community leaf;
+            then accept;
+        }
+        term fabric-l3 {
+            from community fabric-l3;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term lbpp {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    community fabric-l3 members target:65534:1;
+    community leaf members target:1:1;
+    community vqfx1 members 65000:1;
+    community vqfx2 members 65000:2;
+    community vqfx3 members 65000:3;
+}
+routing-instances {
+    fabric {
+        vtep-source-interface lo0.0;
+        instance-type virtual-switch;
+        vrf-import import-fabric-l3;
+        vrf-target target:65534:1;
+        protocols {
+            evpn {
+                encapsulation vxlan;
+                extended-vni-list 400;
+                multicast-mode ingress-replication;
+            }
+        }
+        bridge-domains {
+            bd-400 {
+                vlan-id 400;
+                routing-interface irb.400;
+                vxlan {
+                    vni 400;
+                }
+            }
+        }
+    }
+}

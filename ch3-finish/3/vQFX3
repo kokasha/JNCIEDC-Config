@@ -1,0 +1,248 @@
+## Last changed: 2017-06-14 15:51:49 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX3;
+    root-authentication {
+        encrypted-password "$1$HtEX2JKm$mO0mwLxbEmGEzRtK6155u/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members [ 200 300 ];
+                }
+            }
+        }
+    }
+    xe-0/0/2 {
+        vlan-tagging;
+        unit 130 {
+            vlan-id 130;
+            family inet {
+                address 192.168.130.1/24;
+            }
+        }
+        unit 131 {
+            vlan-id 131;
+            family inet {
+                address 192.168.131.1/24;
+            }
+        }
+        unit 132 {
+            vlan-id 132;
+            family inet {
+                address 192.168.132.1/24;
+            }
+        }
+        unit 133 {
+            vlan-id 133;
+            family inet {
+                address 192.168.133.1/24;
+            }
+        }
+        unit 134 {
+            vlan-id 134;
+            family inet {
+                address 192.168.134.1/24;
+            }
+        }
+        unit 135 {
+            vlan-id 135;
+            family inet {
+                address 192.168.135.1/24;
+            }
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 5 {
+            vlan-id 5;
+            family inet {
+                address 192.168.5.0/31;
+            }
+        }
+        unit 6 {
+            vlan-id 6;
+            family inet {
+                address 192.168.6.0/31;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.10/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.16.1.3/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    router-id 172.16.1.3;
+    autonomous-system 65000 loops 2;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group pod-leaf {
+            hold-time 9;
+            import vMX2-via-vQFX5;
+            authentication-key "$9$.PT3REyMWxSrGik.zFcylMX-"; ## SECRET-DATA
+            export [ advertise-lo0 advertise-direct ];
+            peer-as 65500;
+            multipath;
+            neighbor 192.168.5.1;
+            neighbor 192.168.6.1;
+        }
+        group overlay {
+            type internal;
+            local-address 172.16.1.3;
+            family evpn {
+                signaling;
+            }
+            local-as 65250;
+            neighbor 172.16.1.2;
+            neighbor 172.16.1.1;
+            neighbor 172.16.1.10;
+            neighbor 172.16.1.20;
+        }
+    }
+    evpn {
+        encapsulation vxlan;
+        extended-vni-list all;
+        multicast-mode ingress-replication;
+    }
+    l2-learning {
+        decapsulate-accept-inner-vlan;
+    }
+}
+policy-options {
+    prefix-list fabric-direct-xe-0/0/2 {
+        apply-path "interfaces xe-0/0/2 unit <*> family inet address <*>";
+    }
+    policy-statement advertise-direct {
+        term xe-0/0/2 {
+            from {
+                protocol direct;
+                prefix-list fabric-direct-xe-0/0/2;
+            }
+            then {
+                community add vqfx3;
+                accept;
+            }
+        }
+    }
+    policy-statement advertise-lo0 {
+        term lo0 {
+            from {
+                protocol direct;
+                route-filter 172.16.1.0/24 prefix-length-range /32-/32;
+            }
+            then {
+                community add vqfx3;
+                accept;
+            }
+        }
+    }
+    policy-statement lbpp {
+        term lbpp {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    policy-statement vMX2-via-vQFX5 {
+        term 1 {
+            from {
+                next-hop 192.168.6.1;
+                route-filter 172.16.1.20/32 exact;
+            }
+            then {
+                local-preference 110;
+            }
+        }
+    }
+    community vqfx1 members 65000:1;
+    community vqfx2 members 65000:2;
+    community vqfx3 members 65000:3;
+}
+switch-options {
+    vtep-source-interface lo0.0;
+    route-distinguisher 172.16.1.3:65000;
+    vrf-target {
+        target:1:1;
+        auto;
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+    vlan-200 {
+        vlan-id 200;
+        vxlan {
+            vni 200;
+        }
+    }
+    vlan-300 {
+        vlan-id 300;
+        vxlan {
+            vni 300;
+            encapsulate-inner-vlan;
+        }
+    }
+}

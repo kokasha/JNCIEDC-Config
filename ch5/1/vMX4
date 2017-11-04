@@ -1,0 +1,152 @@
+## Last changed: 2017-06-14 19:05:31 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$90SJdXUY$9xgD2dhZ.XZLQKJUoaFD2G3XW7OtyJt9uyadSkAxa.0"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/6 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 10 {
+            vlan-id 10;
+            family inet {
+                address 172.16.56.26/30;
+            }
+        }
+        unit 20 {
+            vlan-id 20;
+            family inet {
+                address 81.125.66.142/30;
+            }
+        }
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 81.125.65.2/24;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.2/32;
+            }
+        }
+        unit 10 {
+            family inet {
+                address 95.0.0.1/32;
+            }
+        }
+        unit 100 {
+            family inet {
+                address 192.168.120.124/32;
+                address 192.168.120.1/32;
+                address 192.168.121.1/32;
+                address 192.168.122.1/32;
+                address 192.168.123.1/32;
+                address 192.168.124.1/32;
+                address 192.168.123.123/32;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement static {
+        term static {
+            from protocol static;
+            then accept;
+        }
+    }
+}
+routing-instances {
+    dc-zone {
+        instance-type virtual-router;
+        interface xe-0/0/6.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 81.125.65.1;
+            }
+        }
+    }
+    private-wan {
+        instance-type virtual-router;
+        interface xe-0/0/6.10;
+        interface lo0.100;
+        routing-options {
+            static {
+                route 192.168.120.0/24 reject;
+                route 192.168.121.0/24 reject;
+                route 192.168.122.0/24 reject;
+                route 192.168.123.0/24 reject;
+                route 192.168.124.0/24 reject;
+            }
+            autonomous-system 65010;
+        }
+        protocols {
+            bgp {
+                group ce {
+                    export static;
+                    peer-as 65000;
+                    neighbor 172.16.56.25;
+                }
+            }
+        }
+    }
+    www {
+        instance-type virtual-router;
+        interface xe-0/0/6.20;
+        interface lo0.10;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 81.125.66.141;
+            }
+        }
+    }
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

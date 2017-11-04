@@ -1,0 +1,113 @@
+## Last changed: 2017-06-14 18:37:20 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX1;
+    root-authentication {
+        encrypted-password "$5$ORK1dKqD$KzyjDxPCroKPt35f1B5xYt0Xq1Ey65mWTQp7KVP4kQ/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.48.42/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 172.16.48.46/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        vlan-tagging;
+        unit 12 {
+            vlan-id 12;
+            family inet {
+                address 172.16.24.33/30;
+            }
+            family mpls;
+        }
+    }
+    xe-0/0/6 {
+        vlan-tagging;
+        unit 12 {
+            vlan-id 12;
+            family inet {
+                address 172.16.48.33/30;
+            }
+            family mpls;
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.1/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 172.31.50.1/32;
+            }
+        }
+    }
+}
+protocols {
+    mpls {
+        interface xe-0/0/6.12;
+        interface xe-0/0/5.12;
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface lo0.0;
+            interface xe-0/0/6.12;
+            interface xe-0/0/5.12;
+        }
+    }
+    ldp {
+        interface xe-0/0/5.12;
+        interface xe-0/0/6.12;
+    }
+}

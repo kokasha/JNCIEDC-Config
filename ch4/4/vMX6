@@ -1,0 +1,243 @@
+## Last changed: 2017-06-14 18:36:58 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX6;
+    root-authentication {
+        encrypted-password "$5$7qXPDU0B$01b6U6sBeWnhEanG4JJd1iDY25pzG0PnghN59wnyNTA"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 30;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        vlan-tagging;
+        mac 00:01:01:01:01:01;
+        unit 200 {
+            vlan-id 200;
+            family inet {
+                address 192.168.200.1/24;
+            }
+        }
+        unit 250 {
+            vlan-id 250;
+            family inet {
+                address 192.168.250.1/24;
+            }
+        }
+    }
+    xe-0/0/1 {
+        vlan-tagging;
+        mac 00:02:02:02:02:02;
+        unit 200 {
+            vlan-id 200;
+            family inet {
+                address 192.168.200.2/24;
+            }
+        }
+        unit 250 {
+            vlan-id 250;
+            family inet {
+                address 192.168.250.2/24;
+            }
+        }
+    }
+    xe-0/0/2 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/3 {
+        gigether-options {
+            802.3ad ae1;
+        }
+    }
+    xe-0/0/4 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/5 {
+        gigether-options {
+            802.3ad ae1;
+        }
+    }
+    xe-0/0/6 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    ae0 {
+        aggregated-ether-options {
+            lacp {
+                active;
+                system-id 66:66:66:66:66:00;
+            }
+        }
+        unit 0 {
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list [ 100 250 ];
+            }
+        }
+    }
+    ae1 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        mac 00:04:04:04:04:04;
+        aggregated-ether-options {
+            lacp {
+                active;
+                system-id 66:66:66:66:66:11;
+            }
+        }
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 192.168.100.2/24;
+            }
+        }
+        unit 250 {
+            vlan-id 250;
+            family inet {
+                address 192.168.250.4/24;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.6/24;
+            }
+        }
+    }
+    irb {
+        unit 100 {
+            family inet {
+                address 192.168.100.1/24;
+            }
+            mac 00:03:03:03:03:03;
+        }
+        unit 250 {
+            family inet {
+                address 192.168.250.3/24;
+            }
+            mac 00:03:03:03:03:03;
+        }
+    }
+}
+routing-instances {
+    DC1-S1 {
+        instance-type virtual-router;
+        interface xe-0/0/0.200;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.200.254;
+            }
+        }
+    }
+    DC1-S2 {
+        instance-type virtual-router;
+        interface xe-0/0/1.200;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.200.254;
+            }
+        }
+    }
+    DC1-S3 {
+        instance-type virtual-router;
+        interface xe-0/0/0.250;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.250.254;
+            }
+        }
+    }
+    DC1-S4 {
+        instance-type virtual-router;
+        interface xe-0/0/1.250;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.250.254;
+            }
+        }
+    }
+    DC2-S1 {
+        instance-type virtual-router;
+        interface irb.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.100.254;
+            }
+        }
+    }
+    DC2-S2 {
+        instance-type virtual-router;
+        interface ae1.100;
+        routing-options {
+            static {
+                route 0.0.0.0/0 next-hop 192.168.100.254;
+            }
+        }
+    }
+    DC2-S3 {
+        instance-type virtual-router;
+        interface irb.250;
+    }
+    DC2-S4 {
+        instance-type virtual-router;
+        interface ae1.250;
+    }
+}
+bridge-domains {
+    bd-100 {
+        vlan-id 100;
+        routing-interface irb.100;
+    }
+    bd-250 {
+        vlan-id 250;
+        routing-interface irb.250;
+    }
+}

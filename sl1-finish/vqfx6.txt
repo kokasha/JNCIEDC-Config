@@ -1,0 +1,320 @@
+## Last changed: 2017-06-25 14:18:31 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX6;
+    root-authentication {
+        encrypted-password "$1$IxBtRAFe$OTMjvVNM.jRlSKhCHjv8i/"; ## SECRET-DATA
+        ssh-rsa "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            root-login allow;
+        }
+        telnet;
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+    extensions {
+        providers {
+            juniper {
+                license-type juniper deployment-scope commercial;
+            }
+            chef {
+                license-type juniper deployment-scope commercial;
+            }
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        unit 0 {
+            family ethernet-switching {
+                interface-mode trunk;
+                vlan {
+                    members [ vl10 vl20 vl30 ];
+                }
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 10.40.3.2/30;
+                address 10.40.2.2/30;
+            }
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.13/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                filter {
+                    input re-protect;
+                }
+                address 192.168.1.6/32;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop 10.40.2.1;
+        route 192.168.1.0/24 next-hop 10.40.3.1;
+    }
+    router-id 192.168.1.6;
+}
+protocols {
+    bgp {
+        group overlay {
+            type internal;
+            local-address 192.168.1.6;
+            family evpn {
+                signaling;
+            }
+            local-as 65535;
+            neighbor 192.168.1.33;
+            neighbor 192.168.1.44;
+        }
+    }
+    ospf {
+        area 0.0.0.0 {
+            interface xe-0/0/2.0;
+            interface lo0.0;
+        }
+    }
+    evpn {
+        encapsulation vxlan;
+        extended-vni-list [ 10 20 30 ];
+        multicast-mode ingress-replication;
+        vni-options {
+            vni 10 {
+                vrf-target export target:1:10;
+            }
+            vni 20 {
+                vrf-target export target:1:20;
+            }
+            vni 30 {
+                vrf-target export target:1:30;
+            }
+        }
+    }
+}
+policy-options {
+    prefix-list bgp {
+        apply-path "protocols bgp group <*> neighbor <*>";
+    }
+    policy-statement vpn-import {
+        term 1 {
+            from community evpn;
+            then accept;
+        }
+        term 2 {
+            from community vpn1;
+            then accept;
+        }
+        term 3 {
+            from community vpn2;
+            then accept;
+        }
+        term 4 {
+            from community vni-10;
+            then accept;
+        }
+        term 5 {
+            from community vni-20;
+            then accept;
+        }
+        term 6 {
+            from community vni-30;
+            then accept;
+        }
+    }
+    community evpn members target:1:1;
+    community vni-10 members target:1:10;
+    community vni-20 members target:1:20;
+    community vni-30 members target:1:30;
+    community vpn1 members target:1:1000;
+    community vpn2 members target:1:2000;
+}
+class-of-service {
+    forwarding-classes {
+        class FCOE queue-num 3 no-loss;
+        class NOLOSS queue-num 4 no-loss;
+        class NC queue-num 7;
+        class BE queue-num 0;
+    }
+    traffic-control-profiles {
+        BE {
+            scheduler-map BE;
+        }
+        FCOE {
+            scheduler-map FCOE;
+        }
+        NOLOSS {
+            scheduler-map NOLOSS;
+        }
+        NC {
+            scheduler-map NC;
+        }
+    }
+    forwarding-class-sets {
+        BE {
+            class BE;
+        }
+        FCOE {
+            class FCOE;
+        }
+        NC {
+            class NC;
+        }
+        NOLOSS {
+            class NOLOSS;
+        }
+    }
+    scheduler-maps {
+        BE {
+            forwarding-class BE scheduler BE;
+        }
+        NC {
+            forwarding-class NC scheduler NC;
+        }
+        NOLOSS {
+            forwarding-class NOLOSS scheduler NOLOSS;
+        }
+        FCOE {
+            forwarding-class FCOE scheduler FCOE;
+        }
+    }
+    schedulers {
+        BE {
+            transmit-rate percent 55;
+            buffer-size {
+                remainder;
+            }
+            priority low;
+        }
+        FCOE {
+            transmit-rate percent 25;
+            buffer-size percent 25;
+            priority low;
+        }
+        NOLOSS {
+            transmit-rate percent 19;
+            buffer-size percent 19;
+            priority low;
+        }
+        NC {
+            transmit-rate percent 1;
+            buffer-size percent 1;
+            priority low;
+        }
+    }
+}
+firewall {
+    family inet {
+        filter re-protect {
+            term 1 {
+                from {
+                    source-prefix-list {
+                        bgp;
+                    }
+                    protocol tcp;
+                    source-port bgp;
+                }
+                then accept;
+            }
+            term 2 {
+                from {
+                    protocol icmp;
+                }
+                then accept;
+            }
+            term 3 {
+                from {
+                    protocol tcp;
+                    destination-port [ ssh telnet ];
+                }
+                then accept;
+            }
+            term 5 {
+                then {
+                    count rejected;
+                    discard;
+                }
+            }
+        }
+    }
+}
+switch-options {
+    vtep-source-interface lo0.0;
+    route-distinguisher 192.168.1.6:1;
+    vrf-import vpn-import;
+    vrf-target target:1:1;
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+    vl10 {
+        vlan-id 10;
+        switch-options {
+            no-mac-learning;
+        }
+        vxlan {
+            vni 10;
+            ingress-node-replication;
+        }
+    }
+    vl20 {
+        vlan-id 20;
+        vxlan {
+            vni 20;
+            unreachable-vtep-aging-timer 360;
+            ingress-node-replication;
+        }
+    }
+    vl30 {
+        vlan-id 30;
+        vxlan {
+            vni 30;
+            ingress-node-replication;
+        }
+    }
+}

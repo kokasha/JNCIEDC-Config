@@ -1,0 +1,342 @@
+## Last changed: 2017-06-14 17:23:45 UTC
+version 15.1X53-D60.4;
+system {
+    host-name vQFX3;
+    root-authentication {
+        encrypted-password "$1$HtEX2JKm$mO0mwLxbEmGEzRtK6155u/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ftp;
+        ssh {
+            root-login allow;
+        }
+        telnet;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+}
+interfaces {
+    xe-0/0/1 {
+        vlan-tagging;
+        unit 100 {
+            vlan-id 100;
+            family inet {
+                address 10.200.100.254/24;
+            }
+        }
+        unit 101 {
+            vlan-id 101;
+            family inet {
+                address 10.200.101.254/24;
+            }
+        }
+        unit 102 {
+            vlan-id 102;
+            family inet {
+                address 10.200.102.254/24;
+            }
+        }
+        unit 103 {
+            vlan-id 103;
+            family inet {
+                address 10.200.103.254/24;
+            }
+        }
+        unit 104 {
+            vlan-id 104;
+            family inet {
+                address 10.200.104.254/24;
+            }
+        }
+        unit 105 {
+            vlan-id 105;
+            family inet {
+                address 10.200.105.254/24;
+            }
+        }
+        unit 106 {
+            vlan-id 106;
+            family inet {
+                address 10.200.106.254/24;
+            }
+        }
+        unit 107 {
+            vlan-id 107;
+            family inet {
+                address 10.200.107.254/24;
+            }
+        }
+        unit 108 {
+            vlan-id 108;
+            family inet {
+                address 10.200.108.254/24;
+            }
+        }
+        unit 109 {
+            vlan-id 109;
+            family inet {
+                address 10.200.109.254/24;
+            }
+        }
+        unit 110 {
+            vlan-id 110;
+            family inet {
+                address 10.200.110.254/24;
+            }
+        }
+        unit 3560 {
+            vlan-id 3560;
+            family inet {
+                address 55.0.0.2/30;
+            }
+        }
+    }
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 100.0.0.1/31;
+            }
+            family inet6;
+        }
+    }
+    xe-0/0/3 {
+        vlan-tagging;
+        unit 114 {
+            vlan-id 114;
+            family inet {
+                address 33.0.0.2/30;
+            }
+        }
+        unit 115 {
+            vlan-id 115;
+            family inet {
+                address 100.2.0.1/30;
+            }
+            family inet6 {
+                address 2001:100:2::0/127;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 100.0.0.11/31;
+            }
+            family inet6;
+        }
+    }
+    em0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.10/24;
+            }
+        }
+    }
+    em1 {
+        unit 0 {
+            family inet {
+                address 169.254.0.2/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 100.1.0.13/32;
+            }
+            family inet6 {
+                address 2001:100::13/128;
+            }
+        }
+    }
+}
+forwarding-options {
+    storm-control-profiles default {
+        all;
+    }
+}
+routing-options {
+    autonomous-system 197981;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        group inetzero {
+            type internal;
+            local-address 100.1.0.13;
+            family inet {
+                unicast {
+                    add-path {
+                        receive;
+                        send {
+                            path-count 3;
+                        }
+                    }
+                }
+            }
+            authentication-key "$9$nAHO/A0vMXVb2LxPQFnpu8X7VYo"; ## SECRET-DATA
+            export [ servers nhs ];
+            multipath;
+            neighbor 100.1.0.3;
+            neighbor 100.1.0.4;
+        }
+        group inetzero-v6 {
+            type internal;
+            local-address 2001:100::13;
+            family inet6 {
+                unicast {
+                    add-path {
+                        receive;
+                        send {
+                            path-count 3;
+                        }
+                    }
+                }
+            }
+            authentication-key "$9$LWrx-wHkPF39mfrvWLVb.P5F/t"; ## SECRET-DATA
+            export nhs;
+            multipath;
+            neighbor 2001:100::3;
+            neighbor 2001:100::4;
+        }
+        group transit-as18153 {
+            import as-prepend-in;
+            export as-prepend-out;
+            remove-private;
+            neighbor 55.0.0.1 {
+                peer-as 18153;
+            }
+        }
+        group as65000-v6 {
+            neighbor 2001:100:2::1 {
+                peer-as 65000;
+                as-override;
+            }
+        }
+        group as33915 {
+            export default-only;
+            remove-private;
+            neighbor 33.0.0.1 {
+                peer-as 33915;
+            }
+        }
+        group as65000 {
+            neighbor 100.2.0.2 {
+                peer-as 65000;
+                as-override;
+            }
+        }
+    }
+    ospf3 {
+        realm ipv4-unicast {
+            reference-bandwidth 100g;
+            area 0.0.0.0 {
+                interface xe-0/0/4.0 {
+                    interface-type p2p;
+                }
+                interface xe-0/0/2.0 {
+                    interface-type p2p;
+                }
+                interface lo0.0 {
+                    passive;
+                }
+            }
+        }
+        reference-bandwidth 100g;
+        area 0.0.0.0 {
+            interface xe-0/0/4.0 {
+                interface-type p2p;
+            }
+            interface xe-0/0/2.0 {
+                interface-type p2p;
+            }
+            interface lo0.0 {
+                passive;
+            }
+        }
+    }
+}
+policy-options {
+    prefix-list servers {
+        apply-path "interfaces xe-0/0/1 unit <*> family inet address <*>";
+    }
+    policy-statement as-prepend-in {
+        term 1 {
+            then as-path-prepend "18153 18153 18153 18153";
+        }
+    }
+    policy-statement as-prepend-out {
+        term 1 {
+            then as-path-prepend "197981 197981 197981";
+        }
+    }
+    policy-statement default-only {
+        term 1 {
+            from {
+                route-filter 0.0.0.0/0 exact;
+            }
+            then accept;
+        }
+        term 2 {
+            then reject;
+        }
+    }
+    policy-statement lbpp {
+        term lbpp {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+    policy-statement nhs {
+        term nhs {
+            then {
+                next-hop self;
+            }
+        }
+    }
+    policy-statement servers {
+        term 1 {
+            from {
+                protocol direct;
+                route-filter 10.200.100.0/20 prefix-length-range /24-/24;
+            }
+            then {
+                community add servers;
+                community add no-export;
+                accept;
+            }
+        }
+    }
+    community no-export members no-export;
+    community servers members 1:1;
+}
+vlans {
+    default {
+        vlan-id 1;
+    }
+}

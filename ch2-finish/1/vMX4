@@ -1,0 +1,176 @@
+## Last changed: 2017-06-14 17:12:10 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX4;
+    root-authentication {
+        encrypted-password "$5$90SJdXUY$9xgD2dhZ.XZLQKJUoaFD2G3XW7OtyJt9uyadSkAxa.0"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh;
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file bgp.log {
+            daemon any;
+            match bgp;
+        }
+    }
+}
+chassis {
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/2 {
+        unit 0 {
+            family inet {
+                address 172.16.7.1/30;
+            }
+        }
+    }
+    xe-0/0/3 {
+        unit 0 {
+            family inet {
+                address 172.16.5.1/30;
+            }
+        }
+    }
+    xe-0/0/4 {
+        unit 0 {
+            family inet {
+                address 172.16.3.1/30;
+            }
+        }
+    }
+    xe-0/0/5 {
+        unit 0 {
+            family inet {
+                address 10.0.0.6/30;
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.4/24;
+            }
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.2/32;
+            }
+        }
+    }
+}
+routing-options {
+    aggregate {
+        route 10.0.0.0/8 policy contributor;
+    }
+    autonomous-system 65002;
+    forwarding-table {
+        export lbpp;
+    }
+}
+protocols {
+    bgp {
+        log-updown;
+        group inetzero-fabric {
+            authentication-key "$9$Y3gaUF390OR/C7VwYZG69A0Ic"; ## SECRET-DATA
+            export export-lo0;
+            inactive: bfd-liveness-detection {
+                minimum-interval 4000;
+            }
+            multipath multiple-as;
+            neighbor 172.16.3.2 {
+                peer-as 65003;
+            }
+            neighbor 172.16.5.2 {
+                peer-as 65004;
+            }
+            neighbor 172.16.7.2 {
+                peer-as 65005;
+            }
+        }
+        group isp {
+            import default-only;
+            export aggregate-only;
+            neighbor 10.0.0.5 {
+                hold-time 9;
+                peer-as 65355;
+                local-as 65500;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement aggregate-only {
+        term 1 {
+            from {
+                protocol aggregate;
+                route-filter 10.0.0.0/8 exact;
+            }
+            then accept;
+        }
+        term 2 {
+            then reject;
+        }
+    }
+    policy-statement contributor {
+        term direct {
+            from protocol direct;
+            then accept;
+        }
+        term reject {
+            then reject;
+        }
+    }
+    policy-statement default-only {
+        term 1 {
+            from {
+                protocol bgp;
+                route-filter 0.0.0.0/0 exact;
+            }
+            then accept;
+        }
+        term 2 {
+            then reject;
+        }
+    }
+    policy-statement export-lo0 {
+        term lo0 {
+            from interface lo0.0;
+            then accept;
+        }
+    }
+    policy-statement lbpp {
+        term 1 {
+            then {
+                load-balance per-packet;
+            }
+        }
+    }
+}

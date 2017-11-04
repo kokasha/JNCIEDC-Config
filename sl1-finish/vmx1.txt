@@ -1,0 +1,232 @@
+## Last changed: 2017-06-25 14:29:35 UTC
+version 16.1R3-S2.1;
+system {
+    host-name vMX1;
+    root-authentication {
+        encrypted-password "$5$ORK1dKqD$KzyjDxPCroKPt35f1B5xYt0Xq1Ey65mWTQp7KVP4kQ/"; ## SECRET-DATA
+    }
+    login {
+        user jncie {
+            uid 2001;
+            class super-user;
+            authentication {
+                encrypted-password "$5$ntBagSK7$JOq3aQPZ0/egvCXUk5lQMT3RLxuC8lw2oOlFBH9ZYc6"; ## SECRET-DATA
+            }
+        }
+    }
+    services {
+        ssh {
+            max-sessions-per-connection 32;
+        }
+        netconf {
+            ssh;
+        }
+    }
+    syslog {
+        file messages {
+            any notice;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+        file default-log-messages {
+            any info;
+            structured-data;
+        }
+    }
+}
+chassis {
+    aggregated-devices {
+        ethernet {
+            device-count 5;
+        }
+    }
+    fpc 0 {
+        pic 0 {
+            interface-type xe;
+        }
+        lite-mode;
+    }
+}
+interfaces {
+    xe-0/0/0 {
+        gigether-options {
+            802.3ad ae2;
+        }
+    }
+    xe-0/0/1 {
+        gigether-options {
+            802.3ad ae2;
+        }
+    }
+    xe-0/0/2 {
+        gigether-options {
+            802.3ad ae0;
+        }
+    }
+    xe-0/0/5 {
+        unit 0 {
+            family inet {
+                address 10.20.1.2/30;
+            }
+        }
+    }
+    ae0 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        mac 00:12:12:12:12:12;
+        aggregated-ether-options {
+            lacp {
+                active;
+                system-priority 100;
+                system-id 01:01:01:01:01:01;
+                admin-key 1;
+            }
+            mc-ae {
+                mc-ae-id 1;
+                redundancy-group 10;
+                chassis-id 0;
+                mode active-active;
+                status-control active;
+            }
+        }
+        unit 0 {
+            encapsulation vlan-bridge;
+            multi-chassis-protection 10.21.12.2 {
+                interface ae2.0;
+            }
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list 121;
+            }
+        }
+    }
+    ae2 {
+        flexible-vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        aggregated-ether-options {
+            minimum-links 1;
+            link-speed 10g;
+            lacp {
+                active;
+            }
+        }
+        unit 0 {
+            encapsulation vlan-bridge;
+            family bridge {
+                interface-mode trunk;
+                vlan-id-list [ 121 122 12 ];
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address 10.10.20.1/24;
+            }
+        }
+    }
+    irb {
+        unit 12 {
+            family inet {
+                address 10.21.12.1/30;
+            }
+        }
+        unit 121 {
+            family inet {
+                address 10.20.121.1/24 {
+                    arp 10.20.121.2 l2-interface ae2.0 mac 00:05:86:94:9b:f0;
+                    vrrp-group 1 {
+                        virtual-address 10.20.121.254;
+                        priority 150;
+                        accept-data;
+                    }
+                }
+            }
+        }
+    }
+}
+multi-chassis {
+    multi-chassis-protection 10.21.12.2 {
+        interface ae2;
+    }
+}
+snmp {
+    community inetzero;
+    trap-group space {
+        targets {
+            10.10.20.101;
+        }
+    }
+}
+event-options {
+    policy inetzero {
+        events rpd_ospf_nbrdown;
+        within 120 {
+            trigger after 2;
+            events rpd_ospf_nbrup;
+        }
+        attributes-match {
+            rpd_ospf_nbrdown.neighbor-address equals rpd_ospf_nbrup.neighbor-address;
+            "{$$.neighbor-address}" matches 10.20.121.3;
+        }
+        then {
+            change-configuration {
+                commands {
+                    "set interfaces ae0 disable";
+                }
+            }
+        }
+    }
+}
+routing-options {
+    forwarding-table {
+        export lbpp;
+    }
+}
+multicast-snooping-options {
+    multichassis-lag-replicate-state;
+}
+protocols {
+    ospf {
+        area 0.0.0.0 {
+            interface xe-0/0/5.0;
+            interface xe-0/0/2.121;
+            interface irb.121;
+        }
+    }
+    iccp {
+        local-ip-addr 10.21.12.1;
+        authentication-key "$9$umsOOIcN-woaUbsnCtuEhVwYoGi"; ## SECRET-DATA
+        peer 10.21.12.2 {
+            redundancy-group-id-list 10;
+            liveness-detection {
+                minimum-interval 3000;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement lbpp {
+        then {
+            load-balance per-packet;
+        }
+    }
+}
+bridge-domains {
+    iccp {
+        domain-type bridge;
+        vlan-id 12;
+        routing-interface irb.12;
+    }
+    mc-lag {
+        domain-type bridge;
+        vlan-id 121;
+        mcae-mac-synchronize;
+        routing-interface irb.121;
+    }
+}
+switch-options {
+    service-id 1;
+}
